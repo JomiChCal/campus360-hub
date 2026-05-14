@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: #f0f2f5; color: #1a1a2e; min-height: 100vh;
+    }
+    .login-container, .dashboard {
+      max-width: 100%; padding: 16px;
+    }
+    .login-box {
+      background: #fff; border-radius: 12px; padding: 32px 24px;
+      max-width: 400px; margin: 60px auto; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .login-box h1 {
+      font-size: 20px; text-align: center; margin-bottom: 8px; color: #003366;
+    }
+    .login-box p {
+      text-align: center; color: #666; font-size: 13px; margin-bottom: 24px;
+    }
+    .login-box input {
+      width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;
+      font-size: 16px; text-align: center; outline: none;
+    }
+    .login-box input:focus { border-color: #003366; }
+    .login-box button {
+      width: 100%; margin-top: 16px; padding: 12px; background: #003366;
+      color: #fff; border: none; border-radius: 8px; font-size: 16px;
+      font-weight: 600; cursor: pointer;
+    }
+    .login-box button:hover { background: #002244; }
+    .error-msg { color: #d32f2f; font-size: 13px; text-align: center; margin-top: 12px; }
+
+    .dashboard { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px; border-bottom: 1px solid #eee; flex-wrap: wrap; gap: 8px;
+    }
+    .header h2 { font-size: 18px; color: #003366; }
+    .header-meta { font-size: 12px; color: #888; }
+    .header button {
+      padding: 6px 16px; background: #d32f2f; color: #fff; border: none;
+      border-radius: 6px; font-size: 13px; cursor: pointer;
+    }
+    .counter {
+      background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 12px;
+      font-size: 13px; font-weight: 600; display: inline-block;
+    }
+    .table-wrapper { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px;
+    }
+    th {
+      background: #003366; color: #fff; padding: 10px 8px; text-align: left;
+      position: sticky; top: 0; white-space: nowrap;
+    }
+    td { padding: 8px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+    tr.asesor-row {
+      background: #e8f5e9;
+    }
+    tr.asesor-row:nth-child(even) {
+      background: #d0ebd2;
+    }
+    .empty-state {
+      text-align: center; padding: 48px 16px; color: #999;
+    }
+    .auto-refresh {
+      font-size: 11px; color: #aaa; text-align: right; padding: 8px 16px;
+    }
+    .footer {
+      text-align: center; padding: 16px; font-size: 11px; color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<div id="login-container" class="login-container">
+  <div class="login-box">
+    <h1>Campus360 Hub</h1>
+    <p>Panel de Asesores Externos</p>
+    <input type="password" id="password-input" placeholder="Contraseña" autocomplete="off">
+    <button id="login-btn">Entrar</button>
+    <div id="login-error" class="error-msg" style="display:none;">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<div id="dashboard" class="dashboard" style="display:none;">
+  <div class="header">
+    <div>
+      <h2>Estudiantes Asignados</h2>
+      <div class="header-meta">Última actualización: <span id="last-updated">—</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="row-counter" class="counter">0 estudiantes</span>
+      <button id="logout-btn">Salir</button>
+    </div>
+  </div>
+  <div id="table-area">
+    <div class="empty-state">Cargando…</div>
+  </div>
+  <div class="auto-refresh">Se refresca automáticamente cada 30 segundos</div>
+  <div class="footer">Campus360 Hub — UTPL</div>
+</div>
+
+<script>
+var REFRESH_INTERVAL_MS = 30000;
+var intervalId = null;
+var currentPassword = '';
+
+document.getElementById('login-btn').addEventListener('click', login);
+document.getElementById('password-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') login();
+});
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+function login() {
+  var pw = document.getElementById('password-input').value;
+  if (!pw) return;
+  currentPassword = pw;
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-btn').textContent = 'Verificando…';
+  document.getElementById('login-btn').disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.error) {
+        document.getElementById('login-error').style.display = 'block';
+        document.getElementById('login-btn').textContent = 'Entrar';
+        document.getElementById('login-btn').disabled = false;
+      } else {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        renderData(result);
+        startAutoRefresh();
+      }
+    })
+    .withFailureHandler(function() {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('login-error').textContent = 'Error de conexión. Intenta de nuevo.';
+      document.getElementById('login-btn').textContent = 'Entrar';
+      document.getElementById('login-btn').disabled = false;
+    })
+    .verificarPassword(pw);
+}
+
+function fetchData() {
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.error) {
+        logout();
+        return;
+      }
+      renderData(result);
+    })
+    .withFailureHandler(function() {
+      // Silently retry on next interval
+    })
+    .getTurnos(currentPassword);
+}
+
+function renderData(data) {
+  document.getElementById('last-updated').textContent = data.lastUpdated || '—';
+  document.getElementById('row-counter').textContent = data.count + ' estudiantes';
+
+  if (!data.rows || data.rows.length === 0) {
+    document.getElementById('table-area').innerHTML =
+      '<div class="empty-state">' + (data.message || 'No hay turnos asignados a asesores externos.') + '</div>';
+    return;
+  }
+
+  var html = '<div class="table-wrapper"><table>';
+  html += '<thead><tr>';
+  var cols = [
+    'Turno', 'Fecha', 'Nombres', 'Cédula', 'Correo',
+    'País', 'Prefijo', 'Teléfono', 'Modalidad', 'Servicio',
+    'Detalle', 'Origen', 'Asesor'
+  ];
+  for (var c = 0; c < cols.length; c++) {
+    html += '<th>' + cols[c] + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  for (var r = 0; r < data.rows.length; r++) {
+    html += '<tr class="asesor-row">';
+    for (var c2 = 0; c2 < data.rows[r].length; c2++) {
+      var val = data.rows[r][c2] || '';
+      html += '<td>' + esc(val) + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  document.getElementById('table-area').innerHTML = html;
+}
+
+function startAutoRefresh() {
+  if (intervalId) clearInterval(intervalId);
+  intervalId = setInterval(fetchData, REFRESH_INTERVAL_MS);
+}
+
+function logout() {
+  if (intervalId) clearInterval(intervalId);
+  intervalId = null;
+  currentPassword = '';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-container').style.display = 'block';
+  document.getElementById('password-input').value = '';
+  document.getElementById('login-btn').textContent = 'Entrar';
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+fetchData();
+</script>
+
+</body>
+</html>

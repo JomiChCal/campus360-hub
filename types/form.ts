@@ -1,0 +1,75 @@
+export type UserType = 'estudiante' | 'aspirante' | null;
+
+export type ServiceResult = 'GUIA' | 'TURNO';
+
+export type Modalidad = 'En línea' | 'Distancia' | 'Presencial';
+
+export type FlowState =
+  | 'guide-shown'
+  | 'needs-advisor'
+  | 'turno-assigned'
+  | 'completed'
+  | 'fuera-horario';
+
+export type ServiceMode = 'turno' | 'fuera-horario';
+
+export interface ServiceCategory {
+  id: string;
+  title: string;
+  services: ServiceItem[];
+}
+
+export interface ServiceItem {
+  id: string;
+  label: string;
+  result: ServiceResult;
+  generatesOficio?: boolean;
+}
+
+export interface FormData {
+  step: number;
+  userType: UserType;
+  nombres: string;
+  apellidos: string;
+  cedula: string;
+  email: string;
+  modalidad: Modalidad | '';
+  pais: string;
+  prefijoTelefonico: string;
+  telefono: string;
+  selectedCategoryId: string | null;
+  selectedServiceId: string | null;
+  freeText: string;
+  acceptedPrivacy: boolean;
+  acceptedPolicies: boolean;
+  flowState: FlowState;
+  turnoNumber: string | null;
+  attemptedStepValidation: number | null;
+}
+
+export interface ValidationErrors {
+  nombres?: string;
+  apellidos?: string;
+  cedula?: string;
+  email?: string;
+  modalidad?: string;
+  telefono?: string;
+  acceptedPrivacy?: string;
+  acceptedPolicies?: string;
+}
+
+export type FormAction =
+  | { type: 'SET_STEP'; step: number }
+  | { type: 'SET_USER_TYPE'; userType: UserType }
+  | { type: 'SET_FIELD'; field: keyof FormData; value: string }
+  | { type: 'SET_MODALIDAD'; modalidad: Modalidad }
+  | { type: 'SET_SELECTED_CATEGORY'; categoryId: string }
+  | { type: 'SET_SELECTED_SERVICE'; serviceId: string }
+  | { type: 'SET_FREE_TEXT'; text: string }
+  | { type: 'SET_ACCEPTED_PRIVACY'; accepted: boolean }
+  | { type: 'SET_ACCEPTED_POLICIES'; accepted: boolean }
+  | { type: 'SET_FLOW_STATE'; flowState: FlowState }
+  | { type: 'SET_TURNO_NUMBER'; turnoNumber: string }
+  | { type: 'ATTEMPT_VALIDATION'; step: number }
+  | { type: 'CLEAR_VALIDATION_ATTEMPT' }
+  | { type: 'RESET' };
