@@ -1,0 +1,87 @@
+{
+  "studentTypes": [
+    {
+      "code": "CONTINUO",
+      "name": "Continuo",
+      "categories": [
+        {
+          "name": "CAT-A",
+          "services": [
+            {
+              "title": "Servicio demo",
+              "isActive": true,
+              "requirements": ["Req 1"],
+              "requirementTabs": [
+                {
+                  "tabName": "DISTANCIA",
+                  "title": "Bloque A",
+                  "items": [{ "text": "Item 1", "pdfUrl": "https://example.com/doc.pdf" }]
+                }
+              ],
+              "periods": [
+                {
+                  "name": "Periodo 2026",
+                  "modalities": [
+                    {
+                      "modality": "General",
+                      "requestWindow": "desde abril",
+                      "responseWindow": null
+                    }
+                  ]
+                }
+              ],
+              "manuals": [{ "label": "Manual", "url": "https://example.com/manual" }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "NUEVO",
+      "name": "Nuevo",
+      "categories": [
+        {
+          "name": "MATRÍCULA",
+          "services": [
+            {
+              "title": "Inscripción de materias",
+              "responseTime": "5 días",
+              "isActive": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "POSTULANTE",
+      "name": "Postulante",
+      "categories": [
+        {
+          "name": "ADMISIÓN",
+          "services": [
+            {
+              "title": "Solicitud de admisión",
+              "isActive": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ALUMNI",
+      "name": "Alumni",
+      "categories": [
+        {
+          "name": "CERTIFICADOS",
+          "services": [
+            {
+              "title": "Certificado de estudios",
+              "cost": null,
+              "isActive": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

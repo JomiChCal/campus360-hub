@@ -32,12 +32,15 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 !package.json
 !package-lock.json
 
 # Google service account credentials
 *.json
 !package.json
+!data/utpl-servicios-academicos.json
+!components.json
 
 # vercel
 .vercel
@@ -49,3 +52,5 @@ next-env.d.ts
 # agent files
 AGENTS.md
 .agents/
+
+/lib/generated/prisma
