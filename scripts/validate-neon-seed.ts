@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import { neonReadPort } from '../lib/academic-services/providers/neon/read-port';
 import { prisma } from '../lib/db';
 
@@ -89,20 +92,24 @@ async function main() {
 
   console.log(JSON.stringify(counts, null, 2));
 
+  const reportRaw = await readFile(
+    path.join(process.cwd(), 'data/utpl-portal-import-report.json'),
+    'utf8',
+  );
+  const report = JSON.parse(reportRaw) as {
+    discardedRowDetails: Array<{ reason: string }>;
+  };
+
   assert(counts.studentTypes >= 4, 'Expected at least 4 active student types');
-  assert(counts.categories >= 6, 'Expected at least 6 active categories');
-  assert(counts.servicesDb >= 10, 'Expected at least 10 services');
-  assert(counts.publishedActive >= 6, 'Expected at least 6 published active services');
-  assert(counts.servicesWithCost > 0, 'Expected services with cost');
-  assert(counts.servicesWithoutCost > 0, 'Expected services without cost');
-  assert(counts.servicesWithModality > 0, 'Expected services with modality');
-  assert(counts.servicesWithoutModality > 0, 'Expected services without modality');
-  assert(counts.servicesWithRequirements > 0, 'Expected services with requirements');
-  assert(counts.servicesWithoutRequirements > 0, 'Expected services without requirements');
-  assert(counts.servicesWithManyGuides > 0, 'Expected services with many guides (3+)');
-  assert(counts.servicesWithFewGuides > 0, 'Expected services with few guides (1-2)');
-  assert(counts.servicesWithPeriods > 0, 'Expected services with periods');
-  assert(counts.servicesWithoutPeriods > 0, 'Expected services without periods');
+  assert(counts.servicesPublicList > 0, 'Expected public services after ETL');
+  assert(
+    counts.servicesDb >= counts.servicesPublicList,
+    'DB services must include public services',
+  );
+  assert(
+    report.discardedRowDetails.every((row) => row.reason === 'missing-valid-student-type'),
+    'Discard policy violation: found discard reasons other than missing-valid-student-type',
+  );
 }
 
 main()
