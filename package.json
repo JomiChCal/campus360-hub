@@ -17,6 +17,7 @@
     "db:migrate": "prisma migrate dev",
     "import:servicios:fetch": "npx tsx scripts/fetch-utpl-portal-api.ts",
     "import:servicios:transform": "npx tsx scripts/transform-utpl-portal-api.ts",
+    "import:servicios:manual": "npx tsx --env-file=.env.local scripts/run-utpl-portal-manual-etl.ts",
     "db:seed:servicios": "npx tsx --env-file=.env.local scripts/seed-academic-services.ts",
     "db:seed:mock": "npx tsx --env-file=.env.local scripts/seed-neon-mock.ts",
     "validate:servicios:seed": "npx tsx --env-file=.env.local scripts/validate-neon-seed.ts",
