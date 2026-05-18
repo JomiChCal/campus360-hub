@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { classifyUtplPortalRow } from '@/lib/seed/classify-utpl-portal-row';
 
 describe('classifyUtplPortalRow', () => {
-  it('drops disableblock rows', () => {
+  it('does not discard disableblock rows anymore', () => {
     expect(
       classifyUtplPortalRow({
         field_tipo_estudiante: 'NUEVO',
@@ -12,10 +12,10 @@ describe('classifyUtplPortalRow', () => {
         field_nombre_servicio_1: 'disableblock',
         field_descripcion_servicio: '',
       }).kind,
-    ).toBe('DISCARD');
+    ).toBe('SERVICE');
   });
 
-  it('drops visual headers with no meaningful description', () => {
+  it('does not discard visual header rows by title alone', () => {
     expect(
       classifyUtplPortalRow({
         field_tipo_estudiante: 'NUEVO, CONTINUO',
@@ -24,7 +24,7 @@ describe('classifyUtplPortalRow', () => {
         field_nombre_servicio_1: '🟢 SERVICIOS DE HOMOLOGACION EXTERNA.',
         field_descripcion_servicio: '',
       }).kind,
-    ).toBe('DISCARD');
+    ).toBe('SERVICE');
   });
 
   it('keeps service rows even when title starts with emoji', () => {
