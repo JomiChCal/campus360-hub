@@ -533,8 +533,28 @@ Configura las mismas variables en el panel de **Settings → Environment Variabl
 | `pnpm format` | Prettier: formatear todos los archivos |
 | `pnpm format:check` | Prettier: verificar formato sin escribir |
 | `pnpm lint:all` | ESLint + comprobación Prettier |
+| `pnpm import:servicios:manual` | Ejecuta ETL manual completo UTPL -> Neon (`fetch` + `transform` + `seed` + `validate`) |
 | `pnpm setup-sheets` | Inicializar hojas, encabezados y formato en Google Sheets |
 | `pnpm seed-data` | Insertar filas de ejemplo en las hojas |
+
+## Importación manual UTPL -> Neon
+
+Comando único:
+
+```bash
+pnpm import:servicios:manual
+```
+
+Artefactos generados:
+
+- `data/utpl-portal-raw.json`
+- `data/utpl-portal-fetch-manifest.json`
+- `data/utpl-servicios-academicos.json`
+- `data/utpl-portal-import-report.json`
+
+Regla de descarte:
+
+- Solo se descartan filas sin tipo de estudiante válido.
 
 ---
 
