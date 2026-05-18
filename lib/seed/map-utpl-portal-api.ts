@@ -60,6 +60,15 @@ export function stripUtplLeadingEmoji(title: string): string {
   return title.trim().replace(/^(\p{Extended_Pictographic})\s*/u, '').trim();
 }
 
+export function normalizeServiceTitle(rawTitle: string): string {
+  return rawTitle
+    .trim()
+    .replace(/^(\p{Extended_Pictographic}|\s)+/gu, '')
+    .replace(/^[•*\-]+\s*/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function normalizeTypeCodes(rawTypes: string): string[] {
   const valid = new Set(STUDENT_TYPE_ORDER);
   return rawTypes
@@ -78,7 +87,7 @@ function mapRowToService(
 ): UtplServiceSeed {
   const rawTitle = row.field_nombre_servicio.trim();
   const category = row.field_categoria_servicio.trim();
-  const title = stripUtplLeadingEmoji(rawTitle);
+  const title = normalizeServiceTitle(rawTitle);
   const parsed = parseUtplDescriptionHtml(row.field_descripcion_servicio);
   const normalizedStatus = hasStudentTypes ? 'published' : 'needs_review';
 
@@ -130,23 +139,15 @@ export function mapUtplPortalApiToSeed(rows: UtplPortalApiRow[]): {
 
   rows.forEach((row, globalIndex) => {
     const classification = classifyUtplPortalRow(row);
-    if (classification.kind === 'DISCARD') {
-      discardedRowDetails.push({
-        globalIndex,
-        title: row.field_nombre_servicio,
-        reason: classification.reason,
-      });
-      return;
-    }
 
     const types = normalizeTypeCodes(row.field_tipo_estudiante);
     if (types.length === 0) {
-      reviewRowDetails.push({
+      discardedRowDetails.push({
         globalIndex,
         title: row.field_nombre_servicio,
-        reason: 'missing-student-type',
+        reason: 'missing-valid-student-type',
       });
-      types.push(STUDENT_TYPE_ORDER[0]);
+      return;
     }
 
     for (const typeCode of types) {
