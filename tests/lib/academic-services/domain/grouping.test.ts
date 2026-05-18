@@ -10,12 +10,14 @@ describe('groupRequirementTabsByName', () => {
         title: 'Bloque A',
         sortOrder: 0,
         items: [{ text: 'A', pdfUrl: null, sortOrder: 0 }],
+        guides: [],
       },
       {
         tabName: 'DISTANCIA',
         title: 'Bloque B',
         sortOrder: 1,
         items: [{ text: 'B', pdfUrl: null, sortOrder: 0 }],
+        guides: [],
       },
     ]);
 

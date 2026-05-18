@@ -52,6 +52,202 @@ Plataforma web de atención y gestión de turnos para la **Universidad Técnica 
 
 ---
 
+## Base de datos servicios UTPL portal servicios
+
+### Relaciones (cardinalidad)
+
+- `StudentType` 1:N `ServiceCategory`
+- `ServiceCategory` 1:N `Service`
+- `Service` 1:N `ServiceRequirement`
+- `Service` 1:N `ServiceRequirementTab`
+- `ServiceRequirementTab` 1:N `ServiceRequirementItem`
+- `Service` 1:N `ServicePeriod`
+- `ServicePeriod` 1:N `ServicePeriodModality`
+- `Service` 1:N `ServiceGuide`
+- `Service` 1:N `ServiceExtraField`
+
+### Ejemplo completo (datos ficticios)
+
+```yaml
+tipos_estudiante:
+  - nombre: Estudiante Presencial
+    categorias:
+      - nombre: Matrícula Ordinaria
+        servicios:
+          - nombre_servicio: Matrícula 1
+            modalidad: Presencial
+            descripcion: Registro académico para primer bloque.
+            requisitos_generales:
+              - "Documento de identidad vigente"
+              - "Comprobante de pago"
+            requisitos_por_modalidad:
+              - modalidad: PRESENCIAL
+                requisitos:
+                  - "Subir formulario firmado"
+                    enlace_pdf: "https://ejemplo.utpl.edu.ec/guias/matricula1-presencial.pdf"
+              - modalidad: TECNOLOGIAS
+                requisitos:
+                  - "Subir certificado técnico"
+            periodos:
+              - nombre_periodo: Periodo A
+                ventanas:
+                  - modalidad: PRESENCIAL
+                    fecha_solicitud: "01/09/2026 - 30/09/2026"
+                    fecha_habilitacion_desde: "2026-09-01"
+                    fecha_habilitacion_hasta: "2026-09-30"
+                    tiempo_respuesta: "5 días hábiles"
+            guias:
+              - nombre_guia: Guía PDF
+                url_guia: "https://ejemplo.utpl.edu.ec/guias/matricula1.pdf"
+              - nombre_guia: Video tutorial
+                url_guia: "https://video.ejemplo.edu/matricula1"
+            campos_adicionales:
+              - nombre_campo: Fecha límite
+                valor: "2026-09-30"
+          - nombre_servicio: Matrícula 2
+            modalidad: Presencial
+            guias:
+              - nombre_guia: Guía rápida
+                url_guia: "https://ejemplo.utpl.edu.ec/guias/matricula2.pdf"
+      - nombre: Reingreso Presencial
+        servicios:
+          - nombre_servicio: Reactivación de carrera
+            modalidad: Presencial
+            requisitos_generales:
+              - "Solicitud firmada"
+          - nombre_servicio: Cambio de jornada
+            modalidad: Presencial
+
+  - nombre: Estudiante Continuo
+    categorias:
+      - nombre: Matrícula Continua
+        servicios:
+          - nombre_servicio: Matrícula C1
+            modalidad: Distancia
+            requisitos_por_modalidad:
+              - modalidad: DISTANCIA
+                requisitos:
+                  - "Completar formulario en línea"
+          - nombre_servicio: Matrícula C2
+            modalidad: Distancia
+      - nombre: Trámites Académicos
+        servicios:
+          - nombre_servicio: Retiro de asignatura
+            modalidad: Distancia
+            guias:
+              - nombre_guia: Guía retiro PDF
+                url_guia: "https://ejemplo.utpl.edu.ec/guias/retiro-asignatura.pdf"
+          - nombre_servicio: Certificado de avance
+            modalidad: Distancia
+            campos_adicionales:
+              - nombre_campo: Canal de atención
+                valor: "Virtual"
+```
+
+Lectura del ejemplo:
+- hay 2 tipos de estudiante
+- cada tipo tiene 2 categorías
+- cada categoría tiene 2 servicios
+- cada servicio puede tener o no tener requisitos, tabs, periodos, guías y campos extra
+
+### Tablas y campos
+
+**Tabla `StudentType`**
+- `id`: integer, PK, autoincrement
+- `code`: string, unique
+- `name`: string
+- `description`: string, nullable
+- `sortOrder`: integer
+- `isActive`: boolean
+- `createdAt`: datetime
+- `updatedAt`: datetime
+
+**Tabla `ServiceCategory`**
+- `id`: integer, PK, autoincrement
+- `studentTypeId`: integer, FK -> `StudentType.id`
+- `slug`: string
+- `name`: string
+- `description`: string, nullable
+- `sortOrder`: integer
+- `isActive`: boolean
+- `createdAt`: datetime
+- `updatedAt`: datetime
+- unique (`studentTypeId`, `slug`)
+
+**Tabla `Service`**
+- `id`: integer, PK, autoincrement
+- `categoryId`: integer, FK -> `ServiceCategory.id`
+- `sourceKey`: string, unique
+- `sourceRowIndex`: integer, nullable
+- `title`: string
+- `slug`: string
+- `description`: string, nullable
+- `modalityLevel`: string, nullable
+- `responseTime`: string, nullable
+- `cost`: string, nullable
+- `note`: string, nullable
+- `calendarText`: string, nullable
+- `status`: enum (`draft`, `published`, `needs_review`)
+- `sortOrder`: integer
+- `isActive`: boolean
+- `createdAt`: datetime
+- `updatedAt`: datetime
+- unique (`categoryId`, `slug`)
+
+**Tabla `ServiceRequirement`**
+- `id`: integer, PK, autoincrement
+- `serviceId`: integer, FK -> `Service.id`
+- `text`: string
+- `sortOrder`: integer
+
+**Tabla `ServiceRequirementTab`**
+- `id`: integer, PK, autoincrement
+- `serviceId`: integer, FK -> `Service.id`
+- `tabName`: string (dinámico; ej: `DISTANCIA`, `PRESENCIAL`, `TECNOLOGÍAS`)
+- `title`: string, nullable
+- `sortOrder`: integer
+
+**Tabla `ServiceRequirementItem`**
+- `id`: integer, PK, autoincrement
+- `tabId`: integer, FK -> `ServiceRequirementTab.id`
+- `text`: string
+- `pdfUrl`: string, nullable
+- `sortOrder`: integer
+
+**Tabla `ServicePeriod`**
+- `id`: integer, PK, autoincrement
+- `serviceId`: integer, FK -> `Service.id`
+- `name`: string
+- `sortOrder`: integer
+
+**Tabla `ServicePeriodModality`**
+- `id`: integer, PK, autoincrement
+- `periodId`: integer, FK -> `ServicePeriod.id`
+- `modality`: string (dinámico)
+- `requestWindow`: string, nullable
+- `responseWindow`: string, nullable
+- `enabledFrom`: date, nullable (fecha de habilitación desde)
+- `enabledTo`: date, nullable (fecha de habilitación hasta)
+- `sortOrder`: integer
+
+**Tabla `ServiceGuide`** (bloque final “Guías” en frontend)
+- `id`: integer, PK, autoincrement
+- `serviceId`: integer, FK -> `Service.id`
+- `label`: string
+- `url`: string
+- `sortOrder`: integer
+
+**Tabla `ServiceExtraField`** (campos nuevos sin romper frontend)
+- `id`: integer, PK, autoincrement
+- `serviceId`: integer, FK -> `Service.id`
+- `key`: string (ej: `fecha_limite`)
+- `label`: string (ej: `Fecha límite`)
+- `value`: string
+- `sortOrder`: integer
+- `isActive`: boolean
+
+---
+
 ## Requisitos previos
 
 - **Node.js** 20 o superior

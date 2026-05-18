@@ -38,9 +38,11 @@ export function AdministrativoLogin() {
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center">
-      <Card className="w-full max-w-md border-utpl-border shadow-lg">
+      <Card className="w-full max-w-md rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-subtle)] bg-[color:var(--svc-color-surface-elevated)] shadow-none">
         <CardHeader>
-          <CardTitle className="text-center text-utpl-blue">Acceso administrativo</CardTitle>
+          <CardTitle className="text-center font-sans text-[var(--svc-text-lg)] font-semibold tracking-[0.08em] text-[color:var(--svc-color-text-primary)] uppercase">
+            Acceso administrativo
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -48,28 +50,30 @@ export function AdministrativoLogin() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="username">Usuario</Label>
+              <Label className="text-[var(--svc-text-2xs)] font-medium tracking-[0.08em] text-[color:var(--svc-color-text-muted)] uppercase" htmlFor="username">Usuario</Label>
               <Input
                 id="username"
                 name="username"
                 required
                 autoComplete="username"
+                className="rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-subtle)] bg-[color:var(--svc-color-surface-subtle)] text-[color:var(--svc-color-text-primary)] shadow-none focus-visible:border-[color:var(--svc-color-border-strong)] focus-visible:ring-0"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label className="text-[var(--svc-text-2xs)] font-medium tracking-[0.08em] text-[color:var(--svc-color-text-muted)] uppercase" htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 required
                 autoComplete="current-password"
+                className="rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-subtle)] bg-[color:var(--svc-color-surface-subtle)] text-[color:var(--svc-color-text-primary)] shadow-none focus-visible:border-[color:var(--svc-color-border-strong)] focus-visible:ring-0"
               />
             </div>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
             <Button
               type="submit"
-              className="w-full bg-utpl-blue text-white hover:bg-utpl-blue-hover"
+              className="w-full rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-strong)] bg-[color:var(--svc-color-surface-elevated)] text-[color:var(--svc-color-text-primary)] hover:bg-[color:var(--svc-color-surface-subtle)]"
               disabled={loading}
             >
               {loading ? 'Ingresando…' : 'Ingresar'}

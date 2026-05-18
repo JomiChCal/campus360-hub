@@ -1,6 +1,27 @@
+import { randomUUID } from 'node:crypto';
+
 import type { AcademicServicesWritePort } from '@/lib/academic-services/ports/academic-services-write';
-import { mapServiceDetail, serviceDetailInclude } from '@/lib/academic-services/providers/neon/mappers';
+import {
+  mapServiceDetail,
+  serviceDetailInclude,
+  serviceDetailIncludeLegacy,
+} from '@/lib/academic-services/providers/neon/mappers';
 import { prisma } from '@/lib/db';
+
+function slugify(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120);
+}
+
+function parseDateOnly(value: string | null): Date | null {
+  if (!value) return null;
+  return new Date(`${value}T00:00:00.000Z`);
+}
 
 export const neonWritePort: AcademicServicesWritePort = {
   async createStudentType(input) {
@@ -9,6 +30,7 @@ export const neonWritePort: AcademicServicesWritePort = {
         code: input.code,
         name: input.name,
         description: input.description,
+        isActive: input.isActive,
       },
     });
     return { id: created.id };
@@ -21,6 +43,7 @@ export const neonWritePort: AcademicServicesWritePort = {
         code: input.code,
         name: input.name,
         description: input.description,
+        isActive: input.isActive,
       },
     });
   },
@@ -38,7 +61,9 @@ export const neonWritePort: AcademicServicesWritePort = {
       data: {
         studentTypeId: input.studentTypeId,
         name: input.name,
+        slug: slugify(input.name),
         description: input.description,
+        isActive: input.isActive,
       },
     });
     return { id: created.id };
@@ -50,7 +75,9 @@ export const neonWritePort: AcademicServicesWritePort = {
       data: {
         studentTypeId: input.studentTypeId,
         name: input.name,
+        slug: slugify(input.name),
         description: input.description,
+        isActive: input.isActive,
       },
     });
   },
@@ -66,11 +93,17 @@ export const neonWritePort: AcademicServicesWritePort = {
   async upsertService(input) {
     const nestedData = {
       title: input.title,
+      slug: input.slug || slugify(input.title),
       description: input.description,
+      programs: input.programs,
+      sourceRowIndex: input.sourceRowIndex ?? null,
+      sortOrder: input.sortOrder ?? 0,
       modalityLevel: input.modalityLevel,
       responseTime: input.responseTime,
       cost: input.cost,
       note: input.note,
+      calendarText: input.calendarText,
+      status: input.status,
       isActive: input.isActive,
       categoryId: input.categoryId,
       requirements: { create: input.requirements },
@@ -80,13 +113,23 @@ export const neonWritePort: AcademicServicesWritePort = {
           title: tab.title,
           sortOrder: tab.sortOrder,
           items: { create: tab.items },
+          guides: { create: tab.guides },
         })),
       },
       periods: {
         create: input.periods.map((period) => ({
           name: period.name,
           sortOrder: period.sortOrder,
-          modalities: { create: period.modalities },
+          modalities: {
+            create: period.modalities.map((modality) => ({
+              modality: modality.modality,
+              requestWindow: modality.requestWindow,
+              responseWindow: modality.responseWindow,
+              enabledFrom: parseDateOnly(modality.enabledFrom),
+              enabledTo: parseDateOnly(modality.enabledTo),
+              sortOrder: modality.sortOrder,
+            })),
+          },
         })),
       },
       manuals: { create: input.manuals },
@@ -102,6 +145,9 @@ export const neonWritePort: AcademicServicesWritePort = {
         await tx.serviceRequirementItem.deleteMany({
           where: { tab: { serviceId: input.id } },
         });
+        await tx.serviceRequirementTabGuide.deleteMany({
+          where: { tab: { serviceId: input.id } },
+        });
         await tx.serviceRequirementTab.deleteMany({ where: { serviceId: input.id } });
         await tx.serviceRequirement.deleteMany({ where: { serviceId: input.id } });
 
@@ -113,7 +159,12 @@ export const neonWritePort: AcademicServicesWritePort = {
       return { id: input.id };
     }
 
-    const created = await prisma.service.create({ data: nestedData });
+    const created = await prisma.service.create({
+      data: {
+        ...nestedData,
+        sourceKey: `admin-${randomUUID()}`,
+      },
+    });
     return { id: created.id };
   },
 
@@ -122,10 +173,41 @@ export const neonWritePort: AcademicServicesWritePort = {
   },
 
   async getServiceDetailForAdmin(serviceId) {
-    const service = await prisma.service.findUnique({
-      where: { id: serviceId },
-      include: serviceDetailInclude,
-    });
+    const service = await findServiceWithGuidesFallback(
+      () =>
+        prisma.service.findUnique({
+          where: { id: serviceId },
+          include: serviceDetailInclude,
+        }),
+      () =>
+        prisma.service.findUnique({
+          where: { id: serviceId },
+          include: serviceDetailIncludeLegacy,
+        }),
+    );
     return service ? mapServiceDetail(service) : null;
   },
 };
+
+async function findServiceWithGuidesFallback<T>(
+  primary: () => Promise<T>,
+  fallback: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await primary();
+  } catch (error) {
+    if (isGuidesIncludeValidationError(error)) {
+      return fallback();
+    }
+    throw error;
+  }
+}
+
+function isGuidesIncludeValidationError(error: unknown): boolean {
+  if (!error || typeof error !== 'object' || !('message' in error)) return false;
+  const message = String(error.message);
+  return (
+    message.includes('Unknown field `guides`') &&
+    message.includes('ServiceRequirementTab')
+  );
+}

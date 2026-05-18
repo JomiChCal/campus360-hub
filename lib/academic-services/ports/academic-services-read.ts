@@ -1,16 +1,21 @@
 import type { ServiceDetail } from '@/lib/academic-services/domain/service-detail';
+import type { ServiceStatus } from '@/lib/academic-services/domain/service-detail';
 
 export type StudentTypeSummary = {
   id: number;
   code: string;
   name: string;
   description: string | null;
+  sortOrder: number;
+  isActive: boolean;
 };
 
 export type CategoryWithCount = {
   id: number;
   name: string;
   description: string | null;
+  sortOrder: number;
+  isActive: boolean;
   activeServiceCount: number;
 };
 
@@ -19,6 +24,8 @@ export type CategorySummary = {
   name: string;
   description: string | null;
   studentTypeId: number;
+  sortOrder: number;
+  isActive: boolean;
 };
 
 export type ServiceListItem = {
@@ -27,6 +34,9 @@ export type ServiceListItem = {
   responseTime: string | null;
   cost: string | null;
   modalityLevel: string | null;
+  status: ServiceStatus;
+  isActive: boolean;
+  sortOrder: number;
 };
 
 export type PublicPortalCatalog = {
@@ -36,6 +46,7 @@ export type PublicPortalCatalog = {
     studentTypeId: number;
     name: string;
     description: string | null;
+    sortOrder: number;
   }>;
   services: Array<
     ServiceListItem & {
@@ -55,7 +66,12 @@ export type AdminDashboardCounts = {
 export type AdminServiceListItem = ServiceListItem & {
   categoryId: number;
   studentTypeId: number;
-  isActive: boolean;
+};
+
+/** Detalle completo para el formulario de edición en /administrativo. */
+export type AdminServiceEdit = ServiceDetail & {
+  categoryId: number;
+  slug: string;
 };
 
 export interface AcademicServicesReadPort {
@@ -74,5 +90,5 @@ export interface AcademicServicesReadPort {
     Array<CategorySummary & { studentTypeCode: string; studentTypeName: string }>
   >;
   listAllServices(): Promise<AdminServiceListItem[]>;
-  getServiceDetailForAdmin(serviceId: number): Promise<ServiceDetail | null>;
+  getServiceDetailForAdmin(serviceId: number): Promise<AdminServiceEdit | null>;
 }

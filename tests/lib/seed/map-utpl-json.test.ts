@@ -13,8 +13,12 @@ const sample: UtplServicesJson = {
           name: 'CAT-A',
           services: [
             {
+              sourceKey: 'test-demo',
+              sourceRowIndex: 10,
               title: 'Servicio demo',
               isActive: true,
+              status: 'published',
+              calendarText: 'Calendario demo',
               requirements: ['Req 1'],
               requirementTabs: [
                 {

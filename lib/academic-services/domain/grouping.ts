@@ -5,6 +5,7 @@ export type FlatRequirementTab = {
   title: string | null;
   sortOrder: number;
   items: Array<{ text: string; pdfUrl: string | null; sortOrder: number }>;
+  guides?: Array<{ label: string; url: string; sortOrder: number }>;
 };
 
 export function groupRequirementTabsByName(
@@ -19,6 +20,7 @@ export function groupRequirementTabsByName(
     blocks.push({
       title: tab.title,
       items: [...tab.items].sort((a, b) => a.sortOrder - b.sortOrder),
+      guides: [...(tab.guides ?? [])].sort((a, b) => a.sortOrder - b.sortOrder),
     });
     byTabName.set(tab.tabName, blocks);
   }

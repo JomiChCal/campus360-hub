@@ -6,7 +6,9 @@ import { ServiceDetailModal } from '@/components/servicios/ServiceDetailModal';
 import { CategoryChips } from '@/components/servicios/CategoryChips';
 import { ServiceCardGrid } from '@/components/servicios/ServiceCardGrid';
 import { ServiceSearchBar } from '@/components/servicios/ServiceSearchBar';
+import { PortalSupportActions, PORTAL_CANVAS_ID } from '@/components/servicios/PortalSupportActions';
 import { StudentTypeSidebar } from '@/components/servicios/StudentTypeSidebar';
+import styles from '@/components/servicios/servicios-presentational.module.css';
 import type { PublicPortalCatalog } from '@/lib/academic-services/ports/academic-services-read';
 
 type Props = {
@@ -24,25 +26,30 @@ export function ServiciosPortal({ initialCatalog }: Props) {
 
   const categoriesForType = useMemo(() => {
     if (!selectedStudentTypeId) return [];
-    return initialCatalog.categories.filter((c) => c.studentTypeId === selectedStudentTypeId);
+    return initialCatalog.categories
+      .filter((c) => c.studentTypeId === selectedStudentTypeId)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
   }, [initialCatalog.categories, selectedStudentTypeId]);
 
   const activeCategoryId = useMemo(() => {
     if (selectedCategoryId && categoriesForType.some((c) => c.id === selectedCategoryId)) {
       return selectedCategoryId;
     }
-    return categoriesForType[0]?.id ?? null;
+    const matricula = categoriesForType.find((c) => c.name === 'SERVICIOS-MATRÍCULA');
+    return matricula?.id ?? categoriesForType[0]?.id ?? null;
   }, [categoriesForType, selectedCategoryId]);
 
   const filteredServices = useMemo(() => {
     if (!selectedStudentTypeId || !activeCategoryId) return [];
     const query = searchQuery.trim().toLowerCase();
-    return initialCatalog.services.filter((service) => {
-      if (service.studentTypeId !== selectedStudentTypeId) return false;
-      if (service.categoryId !== activeCategoryId) return false;
-      if (!query) return true;
-      return service.title.toLowerCase().includes(query);
-    });
+    return initialCatalog.services
+      .filter((service) => {
+        if (service.studentTypeId !== selectedStudentTypeId) return false;
+        if (service.categoryId !== activeCategoryId) return false;
+        if (!query) return true;
+        return service.title.toLowerCase().includes(query);
+      })
+      .sort((a, b) => a.sortOrder - b.sortOrder);
   }, [activeCategoryId, initialCatalog.services, searchQuery, selectedStudentTypeId]);
 
   const handleStudentTypeSelect = (id: number) => {
@@ -54,56 +61,59 @@ export function ServiciosPortal({ initialCatalog }: Props) {
 
   const handleServiceSelect = (serviceId: number) => {
     const service = filteredServices.find((s) => s.id === serviceId);
+    if (!service) return;
     setSelectedServiceId(serviceId);
-    setSelectedServiceTitle(service?.title ?? null);
+    setSelectedServiceTitle(service.title);
   };
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-wide text-utpl-blue uppercase sm:text-3xl">
+    <>
+      <header className="mb-4 text-center">
+        <h1
+          className={`h3 fw-bold text-uppercase ${styles.portalHeaderTitle}`}
+        >
           Servicios por tipo de estudiante.
         </h1>
-        <p className="text-utpl-muted">
+        <p className={styles.portalHeaderSubtitle}>
           Selecciona tu perfil y escoge el servicio que requieres
         </p>
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-        <StudentTypeSidebar
-          studentTypes={initialCatalog.studentTypes}
-          selectedId={selectedStudentTypeId}
-          onSelect={handleStudentTypeSelect}
-        />
-
-        <section className="space-y-6">
-          <ServiceSearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
+      <div
+        id={PORTAL_CANVAS_ID}
+        className={`container mt-3 wrapper-servicios ${styles.portalCanvas}`}
+      >
+        <div className="d-flex flex-column flex-md-row">
+          <StudentTypeSidebar
+            studentTypes={initialCatalog.studentTypes}
+            selectedId={selectedStudentTypeId}
+            onSelect={handleStudentTypeSelect}
           />
 
-          <section>
-            <h2 className="mb-3 text-sm font-semibold tracking-wide text-utpl-blue uppercase">
-              Categorías de servicio
-            </h2>
-            <CategoryChips
-              categories={categoriesForType}
-              selectedId={activeCategoryId}
-              onSelect={setSelectedCategoryId}
-            />
-          </section>
+          <div className="col-12 col-md-9 d-flex flex-column">
+            <div className="d-flex flex-column col-11 m-auto">
+              <ServiceSearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+              />
 
-          <section>
-            <h2 className="mb-4 text-sm font-semibold tracking-wide text-utpl-blue uppercase">
-              Servicios
-            </h2>
-            <ServiceCardGrid
-              services={filteredServices}
-              onSelect={handleServiceSelect}
-            />
-          </section>
-        </section>
+              <CategoryChips
+                categories={categoriesForType}
+                selectedId={activeCategoryId}
+                onSelect={setSelectedCategoryId}
+              />
+
+              <h5 className={`mt-3 ${styles.sectionTitle}`}>Servicios</h5>
+              <ServiceCardGrid
+                services={filteredServices}
+                onSelect={handleServiceSelect}
+              />
+            </div>
+          </div>
+        </div>
       </div>
+
+      <PortalSupportActions />
 
       <ServiceDetailModal
         open={selectedServiceId !== null}
@@ -117,6 +127,6 @@ export function ServiciosPortal({ initialCatalog }: Props) {
           }
         }}
       />
-    </div>
+    </>
   );
 }

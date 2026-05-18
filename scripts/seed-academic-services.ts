@@ -1,81 +1,162 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { prisma } from '../lib/db';
-import { mapUtplJsonToSeedPayload } from '../lib/seed/map-utpl-json';
-import type { UtplServicesJson } from '../lib/seed/types';
+import { mapUtplPortalApiToSeed } from '../lib/seed/map-utpl-portal-api';
+import type { UtplPortalApiRow } from '../lib/seed/utpl-portal-api-types';
+
+const RAW_PATH = path.join(process.cwd(), 'data/utpl-portal-raw.json');
+const REPORT_PATH = path.join(process.cwd(), 'data/utpl-portal-import-report.json');
+
+function slugify(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120);
+}
+
+function toDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  return new Date(`${value}T00:00:00.000Z`);
+}
 
 async function main() {
   if (process.env.ACADEMIC_SERVICES_DATA_PROVIDER !== 'neon') {
     throw new Error('db:seed:servicios requires ACADEMIC_SERVICES_DATA_PROVIDER=neon');
   }
 
-  const filePath = path.join(process.cwd(), 'data/utpl-servicios-academicos.json');
-  const raw = await readFile(filePath, 'utf8');
-  const json = JSON.parse(raw) as UtplServicesJson;
-  const payload = mapUtplJsonToSeedPayload(json);
+  const raw = await readFile(RAW_PATH, 'utf8');
+  const rows = JSON.parse(raw) as UtplPortalApiRow[];
+  const { studentTypes, report } = mapUtplPortalApiToSeed(rows);
 
-  await prisma.$transaction(async (tx) => {
-    await tx.serviceManual.deleteMany();
-    await tx.servicePeriodModality.deleteMany();
-    await tx.servicePeriod.deleteMany();
-    await tx.serviceRequirementItem.deleteMany();
-    await tx.serviceRequirementTab.deleteMany();
-    await tx.serviceRequirement.deleteMany();
-    await tx.service.deleteMany();
-    await tx.serviceCategory.deleteMany();
-    await tx.studentType.deleteMany();
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.$executeRawUnsafe(`
+      TRUNCATE TABLE
+        "ServiceManual",
+        "ServicePeriodModality",
+        "ServicePeriod",
+        "ServiceRequirementItem",
+        "ServiceRequirementTabGuide",
+        "ServiceRequirementTab",
+        "ServiceRequirement",
+        "Service",
+        "ServiceCategory",
+        "StudentType"
+      RESTART IDENTITY CASCADE
+    `);
 
-    for (const st of payload) {
-      await tx.studentType.create({
-        data: {
-          code: st.code,
-          name: st.name,
-          description: st.description,
-          categories: {
-            create: st.categories.map((cat) => ({
-              name: cat.name,
-              description: cat.description,
-              services: {
-                create: cat.services.map((svc) => ({
-                  title: svc.title,
-                  description: svc.description,
-                  modalityLevel: svc.modalityLevel,
-                  responseTime: svc.responseTime,
-                  cost: svc.cost,
-                  note: svc.note,
-                  isActive: svc.isActive,
-                  requirements: { create: svc.requirements },
-                  requirementTabs: {
-                    create: svc.requirementTabs.map((tab) => ({
-                      tabName: tab.tabName,
-                      title: tab.title,
-                      sortOrder: tab.sortOrder,
-                      items: { create: tab.items },
-                    })),
-                  },
-                  periods: {
-                    create: svc.periods.map((period) => ({
-                      name: period.name,
-                      sortOrder: period.sortOrder,
-                      modalities: { create: period.modalities },
-                    })),
-                  },
-                  manuals: { create: svc.manuals },
-                })),
-              },
-            })),
+      for (const st of studentTypes) {
+        const studentType = await tx.studentType.create({
+          data: {
+            code: st.code,
+            name: st.name,
+            description: st.description,
+            sortOrder: st.sortOrder,
+            isActive: true,
           },
-        },
-      });
-    }
-  });
+        });
+
+        for (const cat of st.categories) {
+          const category = await tx.serviceCategory.create({
+            data: {
+              studentTypeId: studentType.id,
+              name: cat.name,
+              slug: slugify(cat.name),
+              description: cat.description,
+              sortOrder: cat.sortOrder,
+              isActive: true,
+            },
+          });
+
+          for (const svc of cat.services) {
+            await tx.service.create({
+              data: {
+                sourceKey: svc.sourceKey,
+                sourceRowIndex: svc.sourceRowIndex,
+                categoryId: category.id,
+                title: svc.title,
+                slug: slugify(svc.title),
+                description: svc.description,
+                programs: svc.programs ?? [],
+                modalityLevel: svc.modalityLevel,
+                responseTime: svc.responseTime,
+                cost: svc.cost,
+                note: svc.note,
+                calendarText: svc.calendarText,
+                status: svc.status,
+                sortOrder: svc.sortOrder,
+                isActive: svc.isActive,
+                requirements: { create: (svc.requirements ?? []).map((text, sortOrder) => ({ text, sortOrder })) },
+                requirementTabs: {
+                  create: (svc.requirementTabs ?? []).map((tab, tabSortOrder) => ({
+                    tabName: tab.tabName,
+                    title: tab.title,
+                    sortOrder: tabSortOrder,
+                    items: {
+                      create: tab.items.map((item, itemSortOrder) => ({
+                        text: item.text,
+                        pdfUrl: item.pdfUrl ?? null,
+                        sortOrder: itemSortOrder,
+                      })),
+                    },
+                    guides: {
+                      create: (tab.guides ?? []).map((guide, guideSortOrder) => ({
+                        label: guide.label,
+                        url: guide.url,
+                        sortOrder: guideSortOrder,
+                      })),
+                    },
+                  })),
+                },
+                periods: {
+                  create: (svc.periods ?? []).map((period, periodSortOrder) => ({
+                    name: period.name,
+                    sortOrder: periodSortOrder,
+                    modalities: {
+                      create: period.modalities.map((modality, modalitySortOrder) => ({
+                        modality: modality.modality,
+                        requestWindow: modality.requestWindow ?? null,
+                        responseWindow: modality.responseWindow ?? null,
+                        enabledFrom: toDate(modality.enabledFrom),
+                        enabledTo: toDate(modality.enabledTo),
+                        sortOrder: modalitySortOrder,
+                      })),
+                    },
+                  })),
+                },
+                manuals: {
+                  create: (svc.manuals ?? []).map((manual, manualSortOrder) => ({
+                    label: manual.label,
+                    url: manual.url,
+                    sortOrder: manualSortOrder,
+                  })),
+                },
+              },
+            });
+          }
+        }
+      }
+    },
+    { timeout: 120_000 },
+  );
+
+  await writeFile(REPORT_PATH, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 
   const counts = {
-    studentTypes: await prisma.studentType.count(),
-    categories: await prisma.serviceCategory.count(),
-    services: await prisma.service.count(),
+    studentTypes: await prisma.studentType.count({ where: { isActive: true } }),
+    categories: await prisma.serviceCategory.count({ where: { isActive: true } }),
+    publishedServices: await prisma.service.count({
+      where: { status: 'published', isActive: true },
+    }),
+    needsReviewServices: await prisma.service.count({
+      where: { status: 'needs_review' },
+    }),
   };
+
   console.log('Seed complete:', counts);
 }
 

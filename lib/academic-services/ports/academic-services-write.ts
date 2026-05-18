@@ -4,23 +4,31 @@ export type StudentTypeInput = {
   code: string;
   name: string;
   description: string | null;
+  isActive: boolean;
 };
 
 export type CategoryInput = {
   studentTypeId: number;
   name: string;
   description: string | null;
+  isActive: boolean;
 };
 
 export type ServiceUpsertInput = {
   id?: number;
   categoryId: number;
   title: string;
+  slug: string;
   description: string | null;
+  programs: string[];
+  sourceRowIndex?: number | null;
+  sortOrder?: number;
   modalityLevel: string | null;
   responseTime: string | null;
   cost: string | null;
   note: string | null;
+  calendarText: string | null;
+  status: 'draft' | 'published' | 'needs_review';
   isActive: boolean;
   requirements: Array<{ text: string; sortOrder: number }>;
   requirementTabs: Array<{
@@ -28,6 +36,7 @@ export type ServiceUpsertInput = {
     title: string | null;
     sortOrder: number;
     items: Array<{ text: string; pdfUrl: string | null; sortOrder: number }>;
+    guides: Array<{ label: string; url: string; sortOrder: number }>;
   }>;
   periods: Array<{
     name: string;
@@ -36,6 +45,8 @@ export type ServiceUpsertInput = {
       modality: string;
       requestWindow: string | null;
       responseWindow: string | null;
+      enabledFrom: string | null;
+      enabledTo: string | null;
       sortOrder: number;
     }>;
   }>;

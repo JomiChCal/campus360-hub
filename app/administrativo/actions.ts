@@ -12,7 +12,7 @@ import {
   updateCategory,
   updateStudentType,
 } from '@/lib/academic-services/repositories/admin';
-import { upsertService } from '@/lib/academic-services/repositories/services';
+import { getServiceDetailForAdmin, upsertService } from '@/lib/academic-services/repositories/services';
 import {
   categorySchema,
   serviceFullSchema,
@@ -24,6 +24,16 @@ async function requireAuth() {
   if (!session) throw new Error('No autorizado');
 }
 
+function slugify(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120);
+}
+
 export async function saveStudentTypeAction(formData: FormData) {
   await requireAuth();
   const id = formData.get('id');
@@ -31,6 +41,7 @@ export async function saveStudentTypeAction(formData: FormData) {
     code: formData.get('code'),
     name: formData.get('name'),
     description: formData.get('description') || null,
+    isActive: formData.get('isActive') === 'true',
   });
   const input = { ...parsed, description: parsed.description ?? null };
 
@@ -58,6 +69,7 @@ export async function saveCategoryAction(formData: FormData) {
     studentTypeId: formData.get('studentTypeId'),
     name: formData.get('name'),
     description: formData.get('description') || null,
+    isActive: formData.get('isActive') === 'true',
   });
   const input = { ...parsed, description: parsed.description ?? null };
 
@@ -78,6 +90,11 @@ export async function removeCategoryAction(id: number) {
   revalidatePath('/servicios');
 }
 
+export async function loadServiceForEditAction(serviceId: number) {
+  await requireAuth();
+  return getServiceDetailForAdmin(serviceId);
+}
+
 export async function saveServiceAction(payload: unknown) {
   await requireAuth();
   const raw = payload as { id?: number };
@@ -91,17 +108,22 @@ export async function saveServiceAction(payload: unknown) {
       sortOrder: item.sortOrder,
       pdfUrl: item.pdfUrl && item.pdfUrl.length > 0 ? item.pdfUrl : null,
     })),
+    guides: tab.guides,
   }));
 
   await upsertService({
     id: raw.id,
     categoryId: parsed.categoryId,
     title: parsed.title,
+    slug: parsed.slug?.trim() || slugify(parsed.title),
     description: parsed.description ?? null,
-    modalityLevel: parsed.modalityLevel ?? null,
+    programs: parsed.programs,
+    modalityLevel: composeModalityLevel(parsed.modality, parsed.level, parsed.modalityLevel),
     responseTime: parsed.responseTime ?? null,
     cost: parsed.cost ?? null,
     note: parsed.note ?? null,
+    calendarText: parsed.calendarText ?? null,
+    status: parsed.status,
     isActive: parsed.isActive,
     requirements: parsed.requirements,
     requirementTabs,
@@ -113,6 +135,8 @@ export async function saveServiceAction(payload: unknown) {
         sortOrder: modality.sortOrder,
         requestWindow: modality.requestWindow ?? null,
         responseWindow: modality.responseWindow ?? null,
+        enabledFrom: modality.enabledFrom ?? null,
+        enabledTo: modality.enabledTo ?? null,
       })),
     })),
     manuals: parsed.manuals,
@@ -120,6 +144,22 @@ export async function saveServiceAction(payload: unknown) {
 
   revalidatePath('/administrativo');
   revalidatePath('/servicios');
+}
+
+function composeModalityLevel(
+  modality: string | null | undefined,
+  level: string | null | undefined,
+  fallback: string | null | undefined,
+) {
+  const normalizedModality = modality?.trim();
+  const normalizedLevel = level?.trim();
+
+  if (normalizedModality && normalizedLevel) {
+    return `${normalizedModality} - ${normalizedLevel}`;
+  }
+  if (normalizedModality) return normalizedModality;
+  if (normalizedLevel) return `Nivel ${normalizedLevel}`;
+  return fallback?.trim() || null;
 }
 
 export async function removeServiceAction(id: number) {

@@ -7,9 +7,8 @@ import { ServiceDetailContent } from '@/components/servicios/ServiceDetailConten
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
+import styles from '@/components/servicios/service-detail-modal.module.css';
 
 type Props = {
   open: boolean;
@@ -18,6 +17,23 @@ type Props = {
   serviceTitle: string | null;
   onOpenChange: (open: boolean) => void;
 };
+
+function ServiceDetailSkeleton() {
+  return (
+    <div className="space-y-5 p-7 animate-pulse" aria-hidden>
+      <div className="space-y-2">
+        <div className="h-3 w-36 rounded bg-muted" />
+        <div className="h-4 w-3/4 rounded bg-muted" />
+      </div>
+      <div className="h-16 rounded bg-muted" />
+      <div className="space-y-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-3 w-full rounded bg-muted" />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function ServiceDetailModal({
   open,
@@ -46,21 +62,24 @@ export function ServiceDetailModal({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-utpl-blue">
-            {serviceTitle ?? 'Detalle del servicio'}
-          </DialogTitle>
-        </DialogHeader>
-        {isPending ? (
-          <p className="py-8 text-center text-sm text-utpl-muted">Cargando detalle…</p>
-        ) : detail ? (
-          <ServiceDetailContent detail={detail} />
-        ) : (
-          <p className="py-8 text-center text-sm text-utpl-muted">
+      <DialogContent
+        showCloseButton={false}
+        overlayClassName={`${styles.overlay} data-open:fade-in-0`}
+        className={`w-full max-w-[calc(100%-2rem)] sm:max-w-[860px] ${styles.content}`}
+      >
+        {isPending ? <ServiceDetailSkeleton /> : null}
+        {!isPending && detail ? (
+          <ServiceDetailContent
+            detail={detail}
+            title={detail.title || serviceTitle || 'Detalle del servicio'}
+            onClose={() => onOpenChange(false)}
+          />
+        ) : null}
+        {!isPending && !detail ? (
+          <p className="py-12 text-center text-sm text-utpl-muted">
             No se pudo cargar el detalle del servicio.
           </p>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );
