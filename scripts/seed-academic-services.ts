@@ -18,6 +18,18 @@ function slugify(value: string): string {
     .slice(0, 120);
 }
 
+function makeUniqueSlug(base: string, sourceKey: string, usedSlugs: Set<string>): string {
+  if (!usedSlugs.has(base)) {
+    usedSlugs.add(base);
+    return base;
+  }
+
+  const suffix = sourceKey.slice(0, 8);
+  const unique = `${base}-${suffix}`.slice(0, 120);
+  usedSlugs.add(unique);
+  return unique;
+}
+
 function toDate(value: string | null | undefined): Date | null {
   if (!value) return null;
   return new Date(`${value}T00:00:00.000Z`);
@@ -61,6 +73,7 @@ async function main() {
         });
 
         for (const cat of st.categories) {
+          const usedServiceSlugs = new Set<string>();
           const category = await tx.serviceCategory.create({
             data: {
               studentTypeId: studentType.id,
@@ -73,13 +86,15 @@ async function main() {
           });
 
           for (const svc of cat.services) {
+            const baseSlug = slugify(svc.title);
+            const uniqueSlug = makeUniqueSlug(baseSlug, svc.sourceKey, usedServiceSlugs);
             await tx.service.create({
               data: {
                 sourceKey: svc.sourceKey,
                 sourceRowIndex: svc.sourceRowIndex,
                 categoryId: category.id,
                 title: svc.title,
-                slug: slugify(svc.title),
+                slug: uniqueSlug,
                 description: svc.description,
                 programs: svc.programs ?? [],
                 modalityLevel: svc.modalityLevel,
