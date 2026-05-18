@@ -1,6 +1,32 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-utpl-blue: #004270;
   --color-utpl-blue-hover: #003358;
   --color-utpl-gold: #febe10;
@@ -18,19 +44,78 @@
   --font-sans: var(--font-inter);
 }
 
-* {
-  box-sizing: border-box;
+:root {
+  --radius: 0.625rem;
+  --background: #ffffff;
+  --foreground: #1e293b;
+  --card: #ffffff;
+  --card-foreground: #1e293b;
+  --popover: #ffffff;
+  --popover-foreground: #1e293b;
+  --primary: #004270;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f5fa;
+  --secondary-foreground: #004270;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #fff8e1;
+  --accent-foreground: #004270;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #febe10;
+
+  /* Service Detail UI tokens */
+  --svc-font-serif: Georgia, serif;
+  --svc-font-sans: 'Helvetica Neue', Arial, sans-serif;
+  --svc-radius-sm: 3px;
+  --svc-color-text-primary: #111110;
+  --svc-color-text-secondary: #555550;
+  --svc-color-text-muted: #9a9a8e;
+  --svc-color-surface-subtle: #f7f7f4;
+  --svc-color-surface-elevated: #ffffff;
+  --svc-color-link: #1a5fa8;
+  --svc-color-overlay: rgb(0 0 0 / 70%);
+  --svc-color-border-soft: rgb(0 0 0 / 10%);
+  --svc-color-border-subtle: rgb(0 0 0 / 9%);
+  --svc-color-border-strong: rgb(0 0 0 / 20%);
+  --svc-border-hairline: 0.5px;
+  --svc-border-tab-active: 1.5px;
+  --svc-space-2xs: 3px;
+  --svc-space-xs: 6px;
+  --svc-space-sm: 8px;
+  --svc-space-md: 10px;
+  --svc-space-lg: 14px;
+  --svc-space-xl: 16px;
+  --svc-space-2xl: 20px;
+  --svc-space-3xl: 28px;
+  --svc-space-4xl: 32px;
+  --svc-text-2xs: 10px;
+  --svc-text-xs: 11px;
+  --svc-text-sm: 12.5px;
+  --svc-text-md: 13px;
+  --svc-text-lg: 15.5px;
 }
 
-body {
-  color: #1e293b;
-  font-family:
-    var(--font-inter),
-    system-ui,
-    -apple-system,
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      var(--font-inter),
+      system-ui,
+      -apple-system,
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -249,4 +334,42 @@ body {
 
 .animate-prestige-glow {
   animation: prestige-glow 6s ease-in-out infinite;
+}
+
+/* Portal UTPL — embed oficial academic-services */
+.utpl-servicios-embed .center {
+  text-align: center;
+}
+
+.utpl-servicios-embed__title {
+  margin: 0.5rem 0 1rem;
+  color: var(--color-utpl-blue);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.utpl-servicios-embed__subtitle {
+  display: block;
+  margin-bottom: 1.5rem;
+  color: var(--color-utpl-muted);
+  font-size: 1rem;
+}
+
+.utpl-servicios-embed__loading {
+  padding: 2rem 0;
+  color: var(--color-utpl-muted);
+}
+
+/* Portal académico UTPL — complemento a service-styles.css */
+.wrapper-servicios h5 {
+  color: var(--svc-color-text-primary);
+  font-family: var(--svc-font-sans);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wrapper-servicios .btn-utpl {
+  width: 100%;
 }
