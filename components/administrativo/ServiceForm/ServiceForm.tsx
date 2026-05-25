@@ -11,6 +11,12 @@ import {
   ADMIN_TABS_LIST_CLASS,
   ADMIN_TABS_TRIGGER_CLASS,
 } from '@/components/administrativo/admin-tab-styles';
+import {
+  clearInvalidMessage,
+  GENERIC_FORM_ERROR_MESSAGE,
+  getControlKey,
+  setGenericInvalidMessage,
+} from '@/components/administrativo/form-validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -95,6 +101,7 @@ const CARD_CLASS =
   'space-y-4 rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-subtle)] bg-[color:var(--svc-color-surface-elevated)] p-4';
 
 const DEFAULT_TAB_NAMES = ['Distancia', 'Presencial', 'Tecnologías'];
+const DEFAULT_STEP = 'general';
 
 function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
@@ -249,6 +256,23 @@ function getInitialStudentTypeId(
   return categories[0]?.studentTypeId ?? null;
 }
 
+function resolveStepFromControlKey(key: string): string {
+  if (!key) return DEFAULT_STEP;
+  if (key.startsWith('period-') || key.startsWith('modality-name-') || key.startsWith('request-window-') || key.startsWith('response-window-') || key.startsWith('enabled-')) {
+    return 'periods';
+  }
+  if (key.startsWith('tab-name-') || key.startsWith('block-title-') || key.startsWith('item-') || key.startsWith('guide-')) {
+    return 'documentation';
+  }
+  if (key.startsWith('manual-')) {
+    return 'manuals';
+  }
+  if (key.startsWith('requirement-')) {
+    return 'requirements';
+  }
+  return DEFAULT_STEP;
+}
+
 export function ServiceForm({
   categories,
   studentTypes,
@@ -289,6 +313,7 @@ export function ServiceForm({
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(() =>
     editing?.categoryId ?? categories[0]?.id ?? null,
   );
+  const [activeTab, setActiveTab] = useState('general');
   const [formError, setFormError] = useState<string | null>(null);
 
   const categoriesForSelectedType = useMemo(() => {
@@ -307,6 +332,11 @@ export function ServiceForm({
       setSelectedCategoryId(categoriesForSelectedType[0].id);
     }
   }, [categoriesForSelectedType, selectedCategoryId]);
+
+  function setStepError(step: string, message: string) {
+    setActiveTab(step);
+    setFormError(message);
+  }
 
   function addRequirement() {
     setRequirements((rows) => [...rows, { id: uid('req'), text: '' }]);
@@ -686,9 +716,15 @@ export function ServiceForm({
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const title = String(formData.get('title') ?? '').trim();
 
     if (!selectedCategoryId) {
-      setFormError('Selecciona una categoría válida para el servicio.');
+      setStepError('general', 'Selecciona una categoría válida para el servicio.');
+      return;
+    }
+
+    if (title.length < 3) {
+      setStepError('general', 'El título debe tener al menos 3 caracteres.');
       return;
     }
 
@@ -704,11 +740,11 @@ export function ServiceForm({
 
     for (const manual of parsedManuals) {
       if (!manual.label || !manual.url) {
-        setFormError('Cada manual debe tener etiqueta y URL.');
+        setStepError('manuals', 'Cada manual debe tener etiqueta y URL.');
         return;
       }
       if (!isValidUrl(manual.url)) {
-        setFormError(`URL de manual inválida: ${manual.url}`);
+        setStepError('manuals', `URL de manual inválida: ${manual.url}`);
         return;
       }
     }
@@ -724,7 +760,7 @@ export function ServiceForm({
     for (const tab of docTabs) {
       const tabName = tab.tabName.trim();
       if (!tabName) {
-        setFormError('Cada modalidad en documentación debe tener nombre.');
+        setStepError('documentation', 'Cada modalidad en documentación debe tener nombre.');
         return;
       }
 
@@ -741,11 +777,11 @@ export function ServiceForm({
 
         for (const item of items) {
           if (!item.text) {
-            setFormError(`Documento sin nombre en modalidad ${tabName}.`);
+            setStepError('documentation', `Documento sin nombre en modalidad ${tabName}.`);
             return;
           }
           if (item.pdfUrl && !isValidUrl(item.pdfUrl)) {
-            setFormError(`URL inválida en documentación de ${tabName}: ${item.pdfUrl}`);
+            setStepError('documentation', `URL inválida en documentación de ${tabName}: ${item.pdfUrl}`);
             return;
           }
         }
@@ -757,11 +793,11 @@ export function ServiceForm({
 
         for (const guide of guides) {
           if (!guide.label || !guide.url) {
-            setFormError(`Cada guía de ${tabName} debe tener etiqueta y URL.`);
+            setStepError('documentation', `Cada guía de ${tabName} debe tener etiqueta y URL.`);
             return;
           }
           if (!isValidUrl(guide.url)) {
-            setFormError(`URL inválida en guías de ${tabName}: ${guide.url}`);
+            setStepError('documentation', `URL inválida en guías de ${tabName}: ${guide.url}`);
             return;
           }
         }
@@ -815,12 +851,12 @@ export function ServiceForm({
 
     for (const period of parsedPeriods) {
       if (!period.name) {
-        setFormError('Cada periodo debe tener un nombre.');
+        setStepError('periods', 'Cada periodo debe tener un nombre.');
         return;
       }
       for (const modality of period.modalities) {
         if (!modality.modality) {
-          setFormError(`Cada modalidad del periodo "${period.name}" debe tener nombre.`);
+          setStepError('periods', `Cada modalidad del periodo "${period.name}" debe tener nombre.`);
           return;
         }
       }
@@ -828,40 +864,56 @@ export function ServiceForm({
 
     setFormError(null);
 
-    await saveServiceAction({
-      id: editing?.id,
-      categoryId: selectedCategoryId,
-      title: String(formData.get('title') ?? ''),
-      slug: null,
-      description: formData.get('description') || null,
-      programs: [],
-      modality: modalityValue.trim() || null,
-      level: levelValue.trim() || null,
-      responseTime: formData.get('responseTime') || null,
-      cost: formData.get('cost') || null,
-      note: formData.get('note') || null,
-      calendarText: formData.get('calendarText') || null,
-      status,
-      isActive,
-      requirements: parsedRequirements,
-      requirementTabs: parsedRequirementTabs,
-      periods: parsedPeriods,
-      manuals: parsedManuals,
-    });
+    try {
+      await saveServiceAction({
+        id: editing?.id,
+        categoryId: selectedCategoryId,
+        title,
+        slug: null,
+        description: formData.get('description') || null,
+        programs: [],
+        modality: modalityValue.trim() || null,
+        level: levelValue.trim() || null,
+        responseTime: formData.get('responseTime') || null,
+        cost: formData.get('cost') || null,
+        note: formData.get('note') || null,
+        calendarText: formData.get('calendarText') || null,
+        status,
+        isActive,
+        requirements: parsedRequirements,
+        requirementTabs: parsedRequirementTabs,
+        periods: parsedPeriods,
+        manuals: parsedManuals,
+      });
 
-    onDone?.();
+      onDone?.();
+    } catch {
+      setStepError(DEFAULT_STEP, GENERIC_FORM_ERROR_MESSAGE);
+    }
   }
 
   return (
     <form
       onSubmit={handleSubmit}
+      onInvalidCapture={(event) => {
+        const controlKey = getControlKey(event.target);
+        const step = resolveStepFromControlKey(controlKey);
+        setGenericInvalidMessage(event.target);
+        setStepError(step, GENERIC_FORM_ERROR_MESSAGE);
+      }}
+      onInputCapture={(event) => {
+        clearInvalidMessage(event.target);
+        if (formError === GENERIC_FORM_ERROR_MESSAGE) {
+          setFormError(null);
+        }
+      }}
       className={cn(
         'flex flex-col',
         isSheet ? 'min-h-0 flex-1 bg-[color:var(--svc-color-surface-subtle)]/70' : 'space-y-4',
       )}
     >
       <div className={cn(isSheet && 'min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-6')}>
-        <Tabs defaultValue="general">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className={tabsListClass}>
             <TabsTrigger value="general" className={tabsTriggerClass}>
               General
@@ -916,7 +968,14 @@ export function ServiceForm({
               </Field>
 
               <Field label="Título" htmlFor="title">
-                <Input id="title" name="title" defaultValue={editing?.title} className={ADMIN_FIELD_CLASS} required />
+                <Input
+                  id="title"
+                  name="title"
+                  defaultValue={editing?.title}
+                  className={ADMIN_FIELD_CLASS}
+                  minLength={3}
+                  required
+                />
               </Field>
 
               <Field label="Descripción" htmlFor="description">

@@ -1,7 +1,14 @@
 'use client';
 
+import { useState } from 'react';
+
 import { saveStudentTypeAction } from '@/app/administrativo/actions';
 import { ADMIN_FIELD_CLASS } from '@/components/administrativo/admin-tab-styles';
+import {
+  clearInvalidMessage,
+  GENERIC_FORM_ERROR_MESSAGE,
+  setGenericInvalidMessage,
+} from '@/components/administrativo/form-validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,14 +31,31 @@ function buildStudentTypeCode(name: string) {
 }
 
 export function StudentTypeForm({ editing, onDone }: Props) {
+  const formKey = editing ? `editing-${editing.id}` : 'create';
+  const [formError, setFormError] = useState<string | null>(null);
+
   return (
     <form
+      key={formKey}
       action={async (formData) => {
-        if (editing) formData.set('id', String(editing.id));
-        const rawName = String(formData.get('name') ?? '').trim();
-        formData.set('code', buildStudentTypeCode(rawName));
-        await saveStudentTypeAction(formData);
-        onDone?.();
+        setFormError(null);
+        try {
+          if (editing) formData.set('id', String(editing.id));
+          const rawName = String(formData.get('name') ?? '').trim();
+          formData.set('code', buildStudentTypeCode(rawName));
+          await saveStudentTypeAction(formData);
+          onDone?.();
+        } catch {
+          setFormError(GENERIC_FORM_ERROR_MESSAGE);
+        }
+      }}
+      onInvalidCapture={(event) => {
+        setGenericInvalidMessage(event.target);
+        setFormError(GENERIC_FORM_ERROR_MESSAGE);
+      }}
+      onInputCapture={(event) => {
+        clearInvalidMessage(event.target);
+        if (formError) setFormError(null);
       }}
       className="grid gap-4 rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-subtle)] bg-[color:var(--svc-color-surface-elevated)] p-5"
     >
@@ -86,6 +110,7 @@ export function StudentTypeForm({ editing, onDone }: Props) {
       >
         {editing ? 'Actualizar tipo de estudiante' : 'Crear tipo de estudiante'}
       </Button>
+      {formError ? <p className="text-sm font-medium text-red-600">{formError}</p> : null}
     </form>
   );
 }

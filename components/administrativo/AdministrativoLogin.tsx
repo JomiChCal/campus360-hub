@@ -4,6 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 
+import {
+  clearInvalidMessage,
+  GENERIC_FORM_ERROR_MESSAGE,
+  setGenericInvalidMessage,
+} from '@/components/administrativo/form-validation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -47,6 +52,14 @@ export function AdministrativoLogin() {
         <CardContent>
           <form
             onSubmit={handleSubmit}
+            onInvalidCapture={(event) => {
+              setGenericInvalidMessage(event.target);
+              setError(GENERIC_FORM_ERROR_MESSAGE);
+            }}
+            onInputCapture={(event) => {
+              clearInvalidMessage(event.target);
+              if (error === GENERIC_FORM_ERROR_MESSAGE) setError(null);
+            }}
             className="space-y-4"
           >
             <div className="space-y-2">

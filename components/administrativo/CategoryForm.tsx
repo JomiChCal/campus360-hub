@@ -1,7 +1,14 @@
 'use client';
 
+import { useState } from 'react';
+
 import { saveCategoryAction } from '@/app/administrativo/actions';
 import { ADMIN_FIELD_CLASS, ADMIN_SELECT_CLASS } from '@/components/administrativo/admin-tab-styles';
+import {
+  clearInvalidMessage,
+  GENERIC_FORM_ERROR_MESSAGE,
+  setGenericInvalidMessage,
+} from '@/components/administrativo/form-validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,12 +30,29 @@ type Props = {
 };
 
 export function CategoryForm({ studentTypes, editing, onDone }: Props) {
+  const formKey = editing ? `editing-${editing.id}` : 'create';
+  const [formError, setFormError] = useState<string | null>(null);
+
   return (
     <form
+      key={formKey}
       action={async (formData) => {
-        if (editing) formData.set('id', String(editing.id));
-        await saveCategoryAction(formData);
-        onDone?.();
+        setFormError(null);
+        try {
+          if (editing) formData.set('id', String(editing.id));
+          await saveCategoryAction(formData);
+          onDone?.();
+        } catch {
+          setFormError(GENERIC_FORM_ERROR_MESSAGE);
+        }
+      }}
+      onInvalidCapture={(event) => {
+        setGenericInvalidMessage(event.target);
+        setFormError(GENERIC_FORM_ERROR_MESSAGE);
+      }}
+      onInputCapture={(event) => {
+        clearInvalidMessage(event.target);
+        if (formError) setFormError(null);
       }}
       className="grid gap-4 rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-subtle)] bg-[color:var(--svc-color-surface-elevated)] p-5"
     >
@@ -87,6 +111,7 @@ export function CategoryForm({ studentTypes, editing, onDone }: Props) {
       >
         {editing ? 'Actualizar categoría' : 'Crear categoría'}
       </Button>
+      {formError ? <p className="text-sm font-medium text-red-600">{formError}</p> : null}
     </form>
   );
 }

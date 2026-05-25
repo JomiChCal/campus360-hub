@@ -120,8 +120,8 @@ export function ServiceDetailContent({ detail, title, onClose }: Props) {
           <div className={styles.section}>
             <p className={styles.sectionLabel}>Requisitos</p>
             <ul className={styles.ul}>
-              {requirements.map((item) => (
-                <li key={item} className={styles.li}>
+              {requirements.map((item, index) => (
+                <li key={`${item}-${index}`} className={styles.li}>
                   {item}
                 </li>
               ))}
