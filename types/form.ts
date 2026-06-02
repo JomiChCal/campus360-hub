@@ -59,6 +59,7 @@ export interface ValidationErrors {
 }
 
 export type FormAction =
+  | { type: 'HYDRATE_FROM_STORAGE'; data: FormData }
   | { type: 'SET_STEP'; step: number }
   | { type: 'SET_USER_TYPE'; userType: UserType }
   | { type: 'SET_FIELD'; field: keyof FormData; value: string }

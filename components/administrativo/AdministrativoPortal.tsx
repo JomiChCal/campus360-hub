@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { BookOpenText, FolderKanban, Shapes, Wrench } from 'lucide-react';
 
 import {
   loadServiceForEditAction,
@@ -17,6 +16,7 @@ import { ServiceForm } from '@/components/administrativo/ServiceForm/ServiceForm
 import { StudentTypeForm } from '@/components/administrativo/StudentTypeForm';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type {
@@ -44,10 +44,42 @@ type Props = {
 
 export function AdministrativoPortal({ studentTypes, categories, services }: Props) {
   const [editingStudentType, setEditingStudentType] = useState<StudentTypeSummary | null>(null);
+  const [studentTypeDialogOpen, setStudentTypeDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryRow | null>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [editingServiceDetail, setEditingServiceDetail] = useState<AdminServiceEdit | null>(null);
   const [serviceFormLoading, setServiceFormLoading] = useState(false);
   const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
+
+  function openCreateStudentTypeDialog() {
+    setEditingStudentType(null);
+    setStudentTypeDialogOpen(true);
+  }
+
+  function openEditStudentTypeDialog(row: StudentTypeSummary) {
+    setEditingStudentType(row);
+    setStudentTypeDialogOpen(true);
+  }
+
+  function closeStudentTypeDialog() {
+    setStudentTypeDialogOpen(false);
+    setEditingStudentType(null);
+  }
+
+  function openCreateCategoryDialog() {
+    setEditingCategory(null);
+    setCategoryDialogOpen(true);
+  }
+
+  function openEditCategoryDialog(row: CategoryRow) {
+    setEditingCategory(row);
+    setCategoryDialogOpen(true);
+  }
+
+  function closeCategoryDialog() {
+    setCategoryDialogOpen(false);
+    setEditingCategory(null);
+  }
 
   function openCreateServiceSheet() {
     setEditingServiceDetail(null);
@@ -123,21 +155,18 @@ export function AdministrativoPortal({ studentTypes, categories, services }: Pro
             value="tipos-estudiante"
             className={ADMIN_TABS_TRIGGER_CLASS}
           >
-            <Shapes className="mr-2 h-4 w-4" />
             Tipos de estudiante
           </TabsTrigger>
           <TabsTrigger
             value="categorias"
             className={ADMIN_TABS_TRIGGER_CLASS}
           >
-            <FolderKanban className="mr-2 h-4 w-4" />
             Categorías
           </TabsTrigger>
           <TabsTrigger
             value="servicios"
             className={ADMIN_TABS_TRIGGER_CLASS}
           >
-            <Wrench className="mr-2 h-4 w-4" />
             Servicios
           </TabsTrigger>
         </TabsList>
@@ -146,10 +175,14 @@ export function AdministrativoPortal({ studentTypes, categories, services }: Pro
           value="tipos-estudiante"
           className="space-y-5 pt-1"
         >
-          <StudentTypeForm
-            editing={editingStudentType}
-            onDone={() => setEditingStudentType(null)}
-          />
+          <div className="flex justify-end">
+            <Button
+              className="w-full rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-strong)] bg-[color:var(--svc-color-surface-elevated)] text-[color:var(--svc-color-text-primary)] hover:bg-[color:var(--svc-color-surface-subtle)] sm:w-auto"
+              onClick={openCreateStudentTypeDialog}
+            >
+              Agregar tipo de estudiante
+            </Button>
+          </div>
           <DataTable
             rows={studentTypes}
             rowKey={(row) => row.id}
@@ -170,7 +203,7 @@ export function AdministrativoPortal({ studentTypes, categories, services }: Pro
                       size="sm"
                       variant="outline"
                       className="rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-subtle)] bg-[color:var(--svc-color-surface-subtle)] text-[color:var(--svc-color-text-secondary)] hover:bg-[color:var(--svc-color-surface-elevated)]"
-                      onClick={() => setEditingStudentType(row)}
+                      onClick={() => openEditStudentTypeDialog(row)}
                     >
                       Editar
                     </Button>
@@ -193,11 +226,14 @@ export function AdministrativoPortal({ studentTypes, categories, services }: Pro
           value="categorias"
           className="space-y-5 pt-1"
         >
-          <CategoryForm
-            studentTypes={studentTypes}
-            editing={editingCategory}
-            onDone={() => setEditingCategory(null)}
-          />
+          <div className="flex justify-end">
+            <Button
+              className="w-full rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-strong)] bg-[color:var(--svc-color-surface-elevated)] text-[color:var(--svc-color-text-primary)] hover:bg-[color:var(--svc-color-surface-subtle)] sm:w-auto"
+              onClick={openCreateCategoryDialog}
+            >
+              Agregar categoría
+            </Button>
+          </div>
           <DataTable
             rows={categories}
             rowKey={(row) => row.id}
@@ -211,7 +247,7 @@ export function AdministrativoPortal({ studentTypes, categories, services }: Pro
                 cell: (row) => (
                   <CategoryActions
                     row={row}
-                    onEdit={setEditingCategory}
+                    onEdit={openEditCategoryDialog}
                   />
                 ),
               },
@@ -225,7 +261,6 @@ export function AdministrativoPortal({ studentTypes, categories, services }: Pro
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="inline-flex w-full items-center gap-2 rounded-[var(--svc-radius-sm)] border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-subtle)] bg-[color:var(--svc-color-surface-subtle)] px-3 py-2 text-[var(--svc-text-xs)] font-medium tracking-[0.04em] text-[color:var(--svc-color-text-secondary)] sm:w-auto">
-              <BookOpenText className="h-4 w-4 text-[color:var(--svc-color-text-muted)]" />
               Edita un servicio para ajustar fechas de habilitación y requisitos.
             </div>
             <Button
@@ -291,6 +326,51 @@ export function AdministrativoPortal({ studentTypes, categories, services }: Pro
           />
         </TabsContent>
       </Tabs>
+
+      <Dialog
+        open={studentTypeDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) closeStudentTypeDialog();
+        }}
+      >
+        <DialogContent className="max-w-[calc(100%-2rem)] rounded-lg border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-strong)] bg-[color:var(--svc-color-surface-elevated)] p-0 text-[color:var(--svc-color-text-primary)] sm:max-w-lg">
+          <DialogHeader className="border-b border-[color:var(--svc-color-border-soft)] bg-[color:var(--svc-color-surface-subtle)] px-5 py-4">
+            <DialogTitle>{editingStudentType ? 'Editar tipo de estudiante' : 'Agregar tipo de estudiante'}</DialogTitle>
+            <DialogDescription className="text-[color:var(--svc-color-text-muted)]">
+              Completa los datos y guarda los cambios.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-5">
+            <StudentTypeForm
+              editing={editingStudentType}
+              onDone={closeStudentTypeDialog}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={categoryDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) closeCategoryDialog();
+        }}
+      >
+        <DialogContent className="max-w-[calc(100%-2rem)] rounded-lg border-[var(--svc-border-hairline)] border-[color:var(--svc-color-border-strong)] bg-[color:var(--svc-color-surface-elevated)] p-0 text-[color:var(--svc-color-text-primary)] sm:max-w-lg">
+          <DialogHeader className="border-b border-[color:var(--svc-color-border-soft)] bg-[color:var(--svc-color-surface-subtle)] px-5 py-4">
+            <DialogTitle>{editingCategory ? 'Editar categoría' : 'Agregar categoría'}</DialogTitle>
+            <DialogDescription className="text-[color:var(--svc-color-text-muted)]">
+              Selecciona el tipo de estudiante y define la categoría.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-5">
+            <CategoryForm
+              studentTypes={studentTypes}
+              editing={editingCategory}
+              onDone={closeCategoryDialog}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Sheet
         open={serviceSheetOpen}

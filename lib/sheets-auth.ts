@@ -15,15 +15,18 @@ const missingEnvironmentVariables = Object.entries(requiredEnvironmentVariables)
   .filter(([, value]) => !value)
   .map(([key]) => key);
 
-if (missingEnvironmentVariables.length > 0) {
-  throw new Error(
-    `Missing required environment variables: ${missingEnvironmentVariables.join(', ')}`
-  );
-}
-
 export { SHEETS_ID };
 
+function assertSheetsEnvironmentVariables() {
+  if (missingEnvironmentVariables.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingEnvironmentVariables.join(', ')}`
+    );
+  }
+}
+
 export function getAuth() {
+  assertSheetsEnvironmentVariables();
   return new JWT({
     email: SERVICE_EMAIL,
     key: PRIVATE_KEY,
