@@ -1,30 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Campus360 Hub
 
-## Getting Started
+![Banner](public/images/banner.png)
 
-First, run the development server:
+## Propósito
+
+Plataforma de asesoría virtual para la Universidad Técnica Particular de Loja (UTPL). Permite a estudiantes y aspirantes acceder a servicios académicos, administrativos y de admisión mediante un asistente guiado que asigna turnos de atención personalizada via Zoom.
+
+## Stack
+
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Animaciones**: Framer Motion
+- **UI Components**: shadcn/ui
+- **Base de datos**: Neon PostgreSQL (temporalmente fuera de servicio)
+- **Autenticación**: NextAuth.js
+- **Integraciones**: Microsoft Power Automate (turnos, notificaciones)
+
+## Quick Start
 
 ```bash
+pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> **Nota**: La base de datos está temporalmente deshabilitada. El proyecto requiere configuración de `DATABASE_URL` en `.env.local` para funcionar completamente.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variables de Entorno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+# Base de datos (requerido para producción)
+DATABASE_URL=
 
-## Learn More
+# Power Automate webhooks
+PA_CREAR_TURNO_URL=
+PA_CREAR_AUTOGESTION_URL=
+PA_CREAR_FUERA_HORARIO_URL=
 
-To learn more about Next.js, take a look at the following resources:
+# Zoom
+NEXT_PUBLIC_ZOOM_MEETING_ID=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# NextAuth
+AUTH_SECRET=
+AUTH_URL=http://localhost:3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Endpoints
 
-## Deploy on Vercel
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/api/turno` | Asigna turno de atención |
+| `POST` | `/api/autogestion` | Registra resolución self-service |
+| `POST` | `/api/fuera-horario` | Solicita llamada fuera de horario |
+| `GET` | `/api/schedule-config` | Configuración de horarios |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Flujo Principal
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Usuario selecciona tipo: **Soy UTPL** o **Quiero ser UTPL +**
+2. Completa datos personales
+3. Selecciona servicio o describe requerimiento
+4. Recibe turno con enlace Zoom
+5. Asesoría virtual personalizada
+
+## Estructura del Proyecto
+
+```
+app/
+├── (form)/           # Wizard de asesoría (tipo → datos → servicio → resultado)
+├── api/              # Endpoints
+├── servicios/        # Portal de servicios
+└── turnos-dinamicos/ # Turneros dinámicos
+
+components/
+├── wizard/          # Componentes del wizard
+└── ui/              # shadcn/ui components
+
+lib/
+├── power-automate.ts
+└── validation.ts
+
+prisma/
+└── schema.prisma     # Modelos de datos
+```
+
+## Licencia
+
+Privado - Universidad Técnica Particular de Loja
