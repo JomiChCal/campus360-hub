@@ -1,21 +1,26 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 @theme inline {
-  --color-utpl-blue: #004270;
-  --color-utpl-blue-hover: #003358;
-  --color-utpl-gold: #febe10;
+  --color-utpl-navy: #0d2e5c;
+  --color-utpl-navy-medium: #12407a;
+  --color-utpl-navy-light: #1a5296;
+  --color-utpl-gold: #f5c842;
   --color-utpl-gold-light: #fff8e1;
-  --color-utpl-surface: #f0f5fa;
+  --color-utpl-surface: #f4f6fa;
   --color-utpl-text: #1e293b;
   --color-utpl-muted: #64748b;
   --color-utpl-border: #e2e8f0;
   --color-utpl-success: #0d9488;
+  --color-utpl-blue: #004270;
+  --color-utpl-blue-hover: #003358;
   --color-prestige-navy: #0a1628;
   --color-prestige-night: #1a365d;
   --color-prestige-gold: #d4a853;
   --color-prestige-gold-light: #f5e6c8;
   --color-prestige-surface: #f8fafc;
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-plus-jakarta);
 }
 
 * {
@@ -24,13 +29,10 @@
 
 body {
   color: #1e293b;
-  font-family:
-    var(--font-inter),
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f6fa;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -41,6 +43,21 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+@keyframes fade-up-utpl {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up-utpl {
+  animation: fade-up-utpl 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fade-in-up {
@@ -71,42 +88,6 @@ body {
 
 .animate-scale-in {
   animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-.animate-gradient-slow {
-  background-size: 300% 300%;
-  animation: gradient-shift 20s ease infinite;
-}
-
-@keyframes ticket-shine {
-  0% {
-    transform: translateX(-100%) rotate(25deg);
-  }
-  100% {
-    transform: translateX(250%) rotate(25deg);
-  }
-}
-
-.ticket-shine::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 50%;
-  height: 200%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: translateX(-100%) rotate(25deg);
-  animation: ticket-shine 4s ease-in-out infinite;
 }
 
 @keyframes pop-check {
@@ -157,33 +138,6 @@ body {
   animation: float 4s ease-in-out infinite;
 }
 
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 30s linear infinite;
-}
-
-@keyframes border-glow {
-  0%,
-  100% {
-    border-color: rgba(254, 190, 16, 0.3);
-  }
-  50% {
-    border-color: rgba(254, 190, 16, 0.6);
-  }
-}
-
-.animate-border-glow {
-  animation: border-glow 3s ease-in-out infinite;
-}
-
 @keyframes slide-up {
   from {
     opacity: 0;
@@ -197,6 +151,47 @@ body {
 
 .animate-slide-up {
   animation: slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gold-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 8px rgba(245, 200, 66, 0.3);
+  }
+  50% {
+    text-shadow:
+      0 0 20px rgba(245, 200, 66, 0.6),
+      0 0 40px rgba(245, 200, 66, 0.2);
+  }
+}
+
+.animate-gold-glow {
+  animation: gold-glow 3s ease-in-out infinite;
+}
+
+@keyframes brand-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(15deg) scale(1.1);
+  }
+  50% {
+    transform: rotate(0deg) scale(1);
+  }
+  75% {
+    transform: rotate(-15deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.animate-brand-spin {
+  animation: brand-spin 6s ease-in-out infinite;
+  display: inline-block;
+  transform-origin: center;
+  will-change: transform;
 }
 
 @keyframes countdown-pulse {
@@ -213,40 +208,18 @@ body {
   animation: countdown-pulse 2s ease-in-out infinite;
 }
 
-@keyframes prestige-shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-.animate-prestige-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(212, 168, 83, 0.1) 25%,
-    rgba(212, 168, 83, 0.2) 50%,
-    rgba(212, 168, 83, 0.1) 75%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: prestige-shimmer 8s ease-in-out infinite;
-}
-
-@keyframes prestige-glow {
+@keyframes blink-cursor {
   0%,
   100% {
-    opacity: 0.4;
-    transform: scale(1);
+    opacity: 1;
   }
   50% {
-    opacity: 0.6;
-    transform: scale(1.05);
+    opacity: 0;
   }
 }
 
-.animate-prestige-glow {
-  animation: prestige-glow 6s ease-in-out infinite;
+.animate-blink-cursor {
+  animation: blink-cursor 0.6s step-end infinite;
+  color: #64748b;
+  font-weight: 300;
 }

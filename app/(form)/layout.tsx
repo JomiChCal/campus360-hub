@@ -2,13 +2,16 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 import MobileWarningModal from '@/components/MobileWarningModal';
 import PageHeader from '@/components/PageHeader';
 import StepIndicator from '@/components/StepIndicator';
 import GuideModal from '@/components/wizard/GuideModal';
-import { FormProvider, useFormContext } from '@/contexts/FormContext';
+import RatingModal from '@/components/wizard/RatingModal';
+import { FormProvider, useFormActions, useFormState } from '@/contexts/FormContext';
+import { c } from '@/data/content';
 import { buildRoute } from '@/lib/navigation-utilities';
 
 const ROUTE_TO_STEP: Record<string, number> = {
@@ -30,7 +33,9 @@ const STEP_TO_ROUTE: Record<number, string> = {
 function FormShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParameters = useSearchParams();
-  const { data, maxSteps, submitError, guideModalOpen, setStep } = useFormContext();
+  const { data, submitError, guideModalOpen, ratingModalOpen, closeRatingModal } =
+    useFormState();
+  const { setStep } = useFormActions();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -42,10 +47,7 @@ function FormShell({ children }: { children: React.ReactNode }) {
         return;
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
-
-  const isResultStep = pathname.endsWith('/resultado');
+  }, [pathname, data.step, setStep]);
 
   const handleStepClick = useCallback(
     (step: number) => {
@@ -61,67 +63,80 @@ function FormShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh flex-col">
       <PageHeader />
 
-      <main className="relative z-10 flex flex-1 items-start justify-center px-4 py-6 sm:py-10 lg:items-center lg:py-8">
-        <div className="relative w-full max-w-[800px] rounded-3xl bg-gradient-to-br from-[#004270]/40 via-[#febe10]/10 to-[#004270]/20 p-[1.5px] shadow-2xl shadow-slate-900/10">
-          <div className="flex flex-col bg-white rounded-[calc(1.5rem-1.5px)]">
-            <div className="shrink-0 px-6 pt-6 sm:px-10 sm:pt-10">
-              <div className="mb-6 text-center">
-                <h1 className="text-3xl font-black tracking-tight text-utpl-blue sm:text-5xl">
-                  decide ser <span className="text-utpl-gold">+</span>
-                </h1>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-utpl-muted">
-                  Centro de atención UTPL
-                </p>
-              </div>
-
-              {submitError && (
-                <motion.div
-                  className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-red-700">Error al procesar</p>
-                    <p className="text-sm text-red-600">{submitError}</p>
-                  </div>
-                </motion.div>
-              )}
-
-              <div suppressHydrationWarning>
-                {!isResultStep && data.step < maxSteps && (
-                  <StepIndicator
-                    currentStep={data.step}
-                    userType={data.userType}
-                    onStepClick={handleStepClick}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-1 flex-col justify-center px-6 pb-6 pt-2 sm:px-10 sm:pb-10 sm:pt-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={pathname}
-                  initial={{ opacity: 0, x: 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -30 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {children}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
+      <div className="bg-utpl-navy">
+        <section className="relative z-10 pb-6 pt-16 text-center">
+        <div className="mx-auto max-w-3xl px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <span className="mb-3 inline-block rounded-full border border-white/15 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[2.5px] text-white/70">
+              Asesoría Virtual
+            </span>
+            <h1 className="font-display text-[52px] font-extrabold leading-[1] tracking-tight text-white">
+              {c.layout.brand}
+              <span className="text-utpl-gold">{c.layout.brandAccent}</span>
+            </h1>
+          </motion.div>
         </div>
+      </section>
+
+      <section className="relative z-10 bg-utpl-gold py-2.5 text-center">
+        <p className="font-display text-[11px] font-extrabold uppercase tracking-[3px] text-utpl-navy">
+          Escribiendo historias que transforman el mundo
+        </p>
+      </section>
+
+      <section className="relative z-10 bg-utpl-navy-medium py-4">
+        <div className="mx-auto max-w-3xl px-4">
+          <StepIndicator
+            currentStep={data.step}
+            userType={data.userType}
+            onStepClick={handleStepClick}
+          />
+        </div>
+      </section>
+      </div>
+
+      <main className="relative z-10 mx-auto flex w-full flex-1 max-w-3xl flex-col px-4 py-8">
+        {submitError && (
+          <motion.div
+            className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div>
+              <p className="text-sm font-semibold text-red-700">{c.layout.errorHeading}</p>
+              <p className="text-sm text-red-600">{submitError}</p>
+            </div>
+          </motion.div>
+        )}
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
-      <footer className="relative z-10 shrink-0 bg-slate-900 py-4 text-center">
-        <p className="text-xs text-slate-500">
-          &copy; {new Date().getFullYear()} Universidad Técnica Particular de Loja
+      <footer className="relative z-10 shrink-0 bg-utpl-navy py-5 text-center">
+        <p className="text-xs tracking-wider text-white/50">
+          &copy; {new Date().getFullYear()} {c.layout.footer}
         </p>
       </footer>
 
       <GuideModal isOpen={guideModalOpen} />
+      <RatingModal
+        isOpen={ratingModalOpen}
+        onClose={closeRatingModal}
+      />
       <MobileWarningModal />
     </div>
   );
@@ -148,7 +163,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
 export default function FormLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense
-      fallback={<div className="py-8 text-center text-sm text-utpl-muted">Cargando...</div>}
+      fallback={<div className="py-8 text-center text-sm text-utpl-muted">{c.layout.loading}</div>}
     >
       <LayoutWrapper>{children}</LayoutWrapper>
     </Suspense>
