@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { DM_Sans, Plus_Jakarta_Sans } from 'next/font/google';
 
 import './globals.css';
 
-const inter = Inter({
-  variable: '--font-inter',
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: '--font-plus-jakarta',
   subsets: ['latin'],
+  weight: ['700', '800'],
+});
+
+const dmSans = DM_Sans({
+  variable: '--font-dm-sans',
+  subsets: ['latin'],
+  weight: ['300', '400', '500'],
 });
 
 export const metadata: Metadata = {
@@ -21,48 +28,12 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${plusJakarta.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body
-        className="relative flex min-h-full flex-col bg-[#f6f8fb]"
+        className="relative flex min-h-full flex-col bg-utpl-surface"
         suppressHydrationWarning
       >
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.08] mix-blend-multiply">
-            <svg
-              className="h-full w-full"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <pattern
-                  id="hex"
-                  width="64"
-                  height="115"
-                  patternUnits="userSpaceOnUse"
-                >
-                  <path
-                    d="M32 0L64 19V57.5L32 76.5L0 57.5V19Z"
-                    fill="none"
-                    stroke="#004270"
-                    strokeWidth="1.2"
-                  />
-                  <path
-                    d="M32 76.5L64 57.5V96L32 115L0 96V57.5Z"
-                    fill="none"
-                    stroke="#004270"
-                    strokeWidth="1.2"
-                    opacity="0.5"
-                  />
-                </pattern>
-              </defs>
-              <rect
-                width="100%"
-                height="100%"
-                fill="url(#hex)"
-              />
-            </svg>
-          </div>
-        </div>
         {children}
       </body>
     </html>

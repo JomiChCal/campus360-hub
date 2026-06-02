@@ -1,15 +1,14 @@
-'use client';
-
 import { motion } from 'framer-motion';
-import { GraduationCap, MessageSquare, Search, Ticket, User, UserPlus } from 'lucide-react';
+import { GraduationCap, Ticket, User, UserPlus } from 'lucide-react';
+import { memo } from 'react';
 
+import { c } from '@/data/content';
 import type { UserType } from '@/types/form';
 
 interface StepConfig {
   label: string;
   Icon: typeof GraduationCap;
   step: number;
-  hidden?: boolean;
 }
 
 interface StepIndicatorProperties {
@@ -18,89 +17,73 @@ interface StepIndicatorProperties {
   onStepClick?: (step: number) => void;
 }
 
-function getSteps(userType: UserType): StepConfig[] {
-  const steps: StepConfig[] = [
-    { step: 1, label: 'Tipo', Icon: UserPlus },
-    { step: 2, label: 'Datos', Icon: User },
+function getAllSteps(): StepConfig[] {
+  return [
+    { step: 1, label: c.steps.indicador.paso1, Icon: UserPlus },
+    { step: 2, label: c.steps.indicador.paso2, Icon: User },
+    { step: 3, label: c.steps.indicador.turno, Icon: Ticket },
   ];
-
-  steps.push(
-    { step: 3, label: 'Servicio', Icon: Search, hidden: userType === 'aspirante' },
-    { step: 4, label: 'Detalle', Icon: MessageSquare }
-  );
-
-  steps.push({ step: 5, label: 'Turno', Icon: Ticket });
-
-  return steps;
 }
 
-export default function StepIndicator({
-  currentStep,
-  userType,
-  onStepClick,
-}: StepIndicatorProperties) {
-  const allSteps = getSteps(userType);
-  const steps = allSteps.filter((s) => !s.hidden);
+function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
+  const allSteps = getAllSteps();
+  const completedCount = allSteps.filter((s) => s.step < currentStep).length;
+  const totalVisible = allSteps.length;
+  const progressPercent = Math.max(0, (completedCount / (totalVisible - 1)) * 100);
 
   return (
     <nav
-      aria-label="Progreso"
-      className="mb-8"
+      aria-label={c.steps.indicador.ariaLabel}
+      className="w-full"
+      suppressHydrationWarning
     >
-      <ol className="flex items-center justify-center">
-        {steps.map((step, index) => {
+      <div className="relative flex items-center justify-center gap-0">
+        {allSteps.map((step, index) => {
           const isCompleted = step.step < currentStep;
           const isCurrent = step.step === currentStep;
-          const isLast = index === steps.length - 1;
           const canClick = isCompleted && onStepClick;
+          const isLast = index === allSteps.length - 1;
 
           return (
-            <li
+            <div
               key={step.label}
-              className="flex shrink-0 items-center"
+              className="flex items-center"
             >
               <button
                 type="button"
                 disabled={!canClick}
                 onClick={canClick ? () => onStepClick(step.step) : undefined}
-                className={`flex flex-col items-center gap-1.5 transition-all focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none ${
-                  canClick
-                    ? 'cursor-pointer hover:scale-110 hover:shadow-md hover:brightness-110'
-                    : 'cursor-default'
+                className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-utpl-navy-medium focus-visible:outline-none ${
+                  canClick ? 'cursor-pointer hover:scale-105' : 'cursor-default'
                 }`}
                 aria-current={isCurrent ? 'step' : undefined}
               >
                 <motion.div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-9 sm:w-9 ${
+                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-11 sm:w-11 ${
                     isCurrent
-                      ? 'border-utpl-blue bg-utpl-blue text-white shadow-md shadow-utpl-blue/20'
+                      ? 'border-utpl-gold bg-utpl-gold text-utpl-navy'
                       : isCompleted
-                        ? 'border-utpl-gold bg-utpl-gold text-utpl-blue'
-                        : 'border-slate-200 bg-white text-slate-300'
+                        ? 'border-utpl-gold bg-utpl-gold/20 text-utpl-gold'
+                        : 'border-white/20 bg-white/10 text-white/50'
                   }`}
-                  animate={isCurrent ? { scale: [1, 1.08, 1] } : {}}
+                  animate={isCurrent ? { scale: [1, 1.06, 1] } : {}}
                   transition={{ duration: 0.5 }}
                 >
-                  <step.Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <step.Icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                 </motion.div>
                 <span
-                  className={`whitespace-nowrap text-[10px] font-bold sm:text-xs ${
-                    isCurrent
-                      ? 'text-utpl-blue'
-                      : isCompleted
-                        ? 'text-utpl-blue/70'
-                        : 'text-slate-300'
+                  className={`whitespace-nowrap text-[10px] font-semibold tracking-wide sm:text-[11px] ${
+                    isCurrent ? 'text-utpl-gold' : isCompleted ? 'text-utpl-gold/80' : 'text-white/50'
                   }`}
                 >
                   {step.label}
                 </span>
               </button>
               {!isLast && (
-                <div className="relative mx-1 h-0.5 w-3 sm:mx-1.5 sm:w-5 md:w-8">
-                  <div className="absolute inset-0 rounded-full bg-slate-100" />
+                <div className="mx-1.5 h-0.5 w-6 rounded-full bg-white/15 sm:mx-2 sm:w-8">
                   {step.step < currentStep && (
                     <motion.div
-                      className="absolute inset-0 rounded-full bg-utpl-gold"
+                      className="h-full rounded-full bg-utpl-gold"
                       initial={{ width: 0 }}
                       animate={{ width: '100%' }}
                       transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -108,10 +91,21 @@ export default function StepIndicator({
                   )}
                 </div>
               )}
-            </li>
+            </div>
           );
         })}
-      </ol>
+      </div>
+
+      <div className="mx-auto mt-3 h-1 max-w-md overflow-hidden rounded-full bg-white/15">
+        <motion.div
+          className="h-full rounded-full bg-utpl-gold"
+          initial={{ width: '0%' }}
+          animate={{ width: `${progressPercent}%` }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        />
+      </div>
     </nav>
   );
 }
+
+export default memo(StepIndicator);

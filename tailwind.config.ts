@@ -5,15 +5,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'utpl-blue': '#004270',
-        'utpl-blue-hover': '#003358',
-        'utpl-gold': '#febe10',
+        'utpl-navy': '#0d2e5c',
+        'utpl-navy-medium': '#12407a',
+        'utpl-navy-light': '#1a5296',
+        'utpl-gold': '#f5c842',
         'utpl-gold-light': '#fff8e1',
-        'utpl-surface': '#f0f5fa',
+        'utpl-surface': '#f4f6fa',
         'utpl-text': '#1e293b',
         'utpl-muted': '#64748b',
         'utpl-border': '#e2e8f0',
         'utpl-success': '#0d9488',
+        'utpl-blue': '#004270',
+        'utpl-blue-hover': '#003358',
         'prestige-navy': '#0a1628',
         'prestige-night': '#1a365d',
         'prestige-gold': '#d4a853',

@@ -1,5 +1,6 @@
 # Campus360 Hub
 
+<<<<<<< HEAD
 Plataforma web de atención y gestión de turnos para la **Universidad Técnica Particular de Loja (UTPL)**. Permite a estudiantes, aspirantes y visitantes solicitar servicios académicos mediante un asistente paso a paso: autogestión con guías interactivas, asignación de turnos en horario de atención, o registro de solicitudes fuera de horario para contacto telefónico posterior. Los datos se persisten en **Google Sheets**, donde el equipo de asesores opera en tiempo real.
 
 ## Tabla de contenidos
@@ -323,11 +324,31 @@ pnpm seed-data
 ```
 
 ### 5. Iniciar el servidor de desarrollo
+=======
+![Banner](public/images/banner.png)
+
+## Propósito
+
+Plataforma de asesoría virtual para la Universidad Técnica Particular de Loja (UTPL). Permite a estudiantes y aspirantes acceder a servicios académicos, administrativos y de admisión mediante un asistente guiado que asigna turnos de atención personalizada via Zoom.
+
+## Stack
+
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Animaciones**: Framer Motion
+- **UI Components**: shadcn/ui
+- **Base de datos**: Neon PostgreSQL (temporalmente fuera de servicio)
+- **Autenticación**: NextAuth.js
+- **Integraciones**: Microsoft Power Automate (turnos, notificaciones)
+
+## Quick Start
+>>>>>>> feat/migracion-microsoft
 
 ```bash
+pnpm install
 pnpm dev
 ```
 
+<<<<<<< HEAD
 Abre [http://localhost:3000](http://localhost:3000). La raíz redirige según el horario:
 
 - **Horario abierto** → `/tipo` (inicio del wizard)
@@ -871,3 +892,67 @@ Proyecto privado de la UTPL. Consulta con el equipo propietario antes de redistr
 ---
 
 **Universidad Técnica Particular de Loja** — *decide ser +*
+=======
+> **Nota**: La base de datos está temporalmente deshabilitada. El proyecto requiere configuración de `DATABASE_URL` en `.env.local` para funcionar completamente.
+
+## Variables de Entorno
+
+```env
+# Base de datos (requerido para producción)
+DATABASE_URL=
+
+# Power Automate webhooks
+PA_CREAR_TURNO_URL=
+PA_CREAR_AUTOGESTION_URL=
+PA_CREAR_FUERA_HORARIO_URL=
+
+# Zoom
+NEXT_PUBLIC_ZOOM_MEETING_ID=
+
+# NextAuth
+AUTH_SECRET=
+AUTH_URL=http://localhost:3000
+```
+
+## API Endpoints
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/api/turno` | Asigna turno de atención |
+| `POST` | `/api/autogestion` | Registra resolución self-service |
+| `POST` | `/api/fuera-horario` | Solicita llamada fuera de horario |
+| `GET` | `/api/schedule-config` | Configuración de horarios |
+
+## Flujo Principal
+
+1. Usuario selecciona tipo: **Soy UTPL** o **Quiero ser UTPL +**
+2. Completa datos personales
+3. Selecciona servicio o describe requerimiento
+4. Recibe turno con enlace Zoom
+5. Asesoría virtual personalizada
+
+## Estructura del Proyecto
+
+```
+app/
+├── (form)/           # Wizard de asesoría (tipo → datos → servicio → resultado)
+├── api/              # Endpoints
+├── servicios/        # Portal de servicios
+└── turnos-dinamicos/ # Turneros dinámicos
+
+components/
+├── wizard/          # Componentes del wizard
+└── ui/              # shadcn/ui components
+
+lib/
+├── power-automate.ts
+└── validation.ts
+
+prisma/
+└── schema.prisma     # Modelos de datos
+```
+
+## Licencia
+
+Privado - Universidad Técnica Particular de Loja
+>>>>>>> feat/migracion-microsoft
