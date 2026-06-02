@@ -66,8 +66,6 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
                         ? 'border-utpl-gold bg-utpl-gold/20 text-utpl-gold'
                         : 'border-white/20 bg-white/10 text-white/50'
                   }`}
-                  animate={isCurrent ? { scale: [1, 1.06, 1] } : {}}
-                  transition={{ duration: 0.5 }}
                 >
                   <step.Icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                 </motion.div>
