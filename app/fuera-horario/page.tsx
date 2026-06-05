@@ -79,13 +79,13 @@ export default function FueraHorarioPage() {
 
       <main className="relative z-10 mx-auto flex w-full flex-1 items-center justify-center px-4 py-12">
         <motion.div
-          className="w-full max-w-2xl"
+          className="w-full max-w-4xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="rounded-2xl bg-white px-10 py-12 shadow-lg sm:px-14 sm:py-16">
-            <div className="space-y-10">
+          <div className="rounded-2xl bg-white px-12 py-14 shadow-lg sm:px-20 sm:py-16">
+            <div className="space-y-12">
               <div className="text-center">
                 <h2 className="font-display text-3xl font-extrabold leading-tight text-utpl-navy sm:text-4xl">
                   Gracias por contactarte
