@@ -8,6 +8,7 @@ import AnnouncementBanner from '@/components/AnnouncementBanner';
 import MobileWarningModal from '@/components/MobileWarningModal';
 import PageHeader from '@/components/PageHeader';
 import StepIndicator from '@/components/StepIndicator';
+import ContactTimeModal from '@/components/wizard/ContactTimeModal';
 import GuideModal from '@/components/wizard/GuideModal';
 import { FormProvider, useFormContext } from '@/contexts/FormContext';
 import { c } from '@/data/content';
@@ -37,6 +38,9 @@ function FormShell({ children }: { children: React.ReactNode }) {
     dispatch,
     submitError,
     guideModalOpen,
+    contactTimeModalOpen,
+    handleContactTimeConfirm,
+    closeContactTimeModal,
     setStep,
   } = useFormContext();
   const pathname = usePathname();
@@ -135,6 +139,11 @@ function FormShell({ children }: { children: React.ReactNode }) {
       </footer>
 
       <GuideModal isOpen={guideModalOpen} />
+      <ContactTimeModal
+        isOpen={contactTimeModalOpen}
+        onClose={closeContactTimeModal}
+        onConfirm={handleContactTimeConfirm}
+      />
       <MobileWarningModal />
     </div>
   );

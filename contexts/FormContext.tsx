@@ -17,6 +17,7 @@ interface FormContextType {
   submitError: string | null;
   errors: ValidationErrors;
   guideModalOpen: boolean;
+  contactTimeModalOpen: boolean;
   reset: () => void;
   updateField: (field: keyof FormData, value: string) => void;
   setUserType: (userType: FormData['userType']) => void;
@@ -29,6 +30,8 @@ interface FormContextType {
   openGuideModal: () => void;
   handleSolvedFromModal: () => void;
   handleNeedAdvisorFromModal: () => void;
+  handleContactTimeConfirm: (time: string) => void;
+  closeContactTimeModal: () => void;
 }
 
 const FormContext = createContext<FormContextType | null>(null);
@@ -43,6 +46,7 @@ export function FormProvider({
   const wizard = useFormWizard();
   const { isSubmitting, submitError, assignTurno, assignFueraHorario } = useTurnAssignment();
   const [guideModalOpen, setGuideModalOpen] = useState(false);
+  const [contactTimeModalOpen, setContactTimeModalOpen] = useState(false);
 
   /* eslint-disable react-hooks/exhaustive-deps */
 
@@ -54,10 +58,21 @@ export function FormProvider({
     setGuideModalOpen(false);
   }, []);
 
+  const closeContactTimeModal = useCallback(() => {
+    setContactTimeModalOpen(false);
+  }, []);
+
+  /* eslint-disable react-hooks/exhaustive-deps */
+
   const submitForm = useCallback(
     async (mode: ServiceMode, preSelectedContactTime: string = '') => {
       const currentlyOpen = canAcceptNewTurnos();
       const effectiveMode = mode === 'fuera-horario' || !currentlyOpen ? 'fuera-horario' : 'turno';
+
+      if (effectiveMode === 'fuera-horario' && !preSelectedContactTime) {
+        setContactTimeModalOpen(true);
+        return;
+      }
 
       if (wizard.data.userType === 'aspirante') {
         wizard.dispatch({ type: 'SET_STEP', step: wizard.maxSteps });
@@ -92,6 +107,14 @@ export function FormProvider({
       }
     },
     [wizard.data, wizard.dispatch, wizard.maxSteps, assignTurno, assignFueraHorario]
+  );
+
+  const handleContactTimeConfirm = useCallback(
+    (time: string) => {
+      setContactTimeModalOpen(false);
+      submitForm('fuera-horario', time);
+    },
+    [submitForm]
   );
 
   const handleSolvedFromModal = useCallback(() => {
@@ -140,6 +163,7 @@ export function FormProvider({
       submitError,
       errors,
       guideModalOpen,
+      contactTimeModalOpen,
       reset: wizard.reset,
       updateField: wizard.updateField,
       setUserType: wizard.setUserType,
@@ -152,6 +176,8 @@ export function FormProvider({
       openGuideModal,
       handleSolvedFromModal,
       handleNeedAdvisorFromModal,
+      handleContactTimeConfirm,
+      closeContactTimeModal,
     }),
     [
       wizard.data,
@@ -169,10 +195,13 @@ export function FormProvider({
       submitError,
       errors,
       guideModalOpen,
+      contactTimeModalOpen,
       submitForm,
       openGuideModal,
       handleSolvedFromModal,
       handleNeedAdvisorFromModal,
+      handleContactTimeConfirm,
+      closeContactTimeModal,
     ]
   );
 
