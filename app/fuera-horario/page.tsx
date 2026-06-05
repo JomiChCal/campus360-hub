@@ -1,7 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, Clock, ExternalLink, Moon, Phone, Sun } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  ExternalLink,
+  Handshake,
+  Moon,
+  Phone,
+  Sun,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -44,153 +52,193 @@ export default function FueraHorarioPage() {
     <div className="flex min-h-dvh flex-col">
       <PageHeader />
 
-      <main className="relative z-10 flex flex-1 items-center justify-center overflow-hidden px-4 py-4 sm:py-6 lg:py-8">
+      <div className="bg-utpl-navy">
+        <section className="relative z-10 pb-6 pt-16 text-center">
+          <div className="mx-auto max-w-3xl px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <h1 className="font-display text-[52px] font-extrabold leading-[1] tracking-tight text-white">
+                decide ser{' '}
+                <span className="text-utpl-gold">+</span>
+              </h1>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="relative z-10 bg-utpl-gold py-2.5 text-center">
+          <p className="font-display text-[11px] font-extrabold uppercase tracking-[3px] text-utpl-navy">
+            Centro de Atención UTPL
+          </p>
+        </section>
+
+        <section className="relative z-10 bg-utpl-navy-medium py-4">
+          <div className="mx-auto max-w-3xl px-4">
+            <motion.div
+              className="flex items-center justify-center gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {isLunch ? (
+                <Sun className="h-5 w-5 text-utpl-gold" />
+              ) : (
+                <Moon className="h-5 w-5 text-utpl-gold" />
+              )}
+              <span className="text-sm font-semibold tracking-wide text-white">
+                {isLunch ? 'Pausa temporal — volvemos a las 15:00' : 'Fuera de horario'}
+              </span>
+            </motion.div>
+          </div>
+        </section>
+      </div>
+
+      <main className="relative z-10 mx-auto flex w-full flex-1 max-w-3xl flex-col px-4 py-8">
         <motion.div
-          className="w-full max-w-xl md:max-w-2xl"
+          className="space-y-6"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           <motion.div
             variants={itemVariants}
-            className="relative rounded-3xl bg-gradient-to-br from-[#004270]/40 via-[#febe10]/10 to-[#004270]/20 p-[1.5px] shadow-xl shadow-slate-900/10"
+            className="rounded-xl border-l-4 border-l-utpl-gold bg-white px-6 py-7 shadow-md sm:px-8"
           >
-            <div className="flex flex-col justify-center bg-white rounded-[calc(1.5rem-1.5px)] p-6 sm:p-8">
-              <motion.div
-                className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-utpl-surface"
-                animate={{ rotate: [0, 8, -8, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                {isLunch ? (
-                  <Sun className="h-7 w-7 text-utpl-gold" />
-                ) : (
-                  <Moon className="h-7 w-7 text-utpl-blue" />
-                )}
-              </motion.div>
-
-              <div className="mb-1 text-center">
-                <h1 className="text-3xl font-black tracking-tight text-utpl-blue sm:text-5xl">
-                  decide ser <span className="text-utpl-gold">+</span>
-                </h1>
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-utpl-surface">
+                <Handshake className="h-6 w-6 text-utpl-blue" />
               </div>
-
-              <h2 className="text-center text-2xl font-black text-utpl-blue sm:text-3xl">
-                {isLunch ? 'Pausa temporal' : 'Fuera de horario'}
-              </h2>
-
-              <div className="mt-4 space-y-3 text-center text-sm leading-relaxed text-utpl-muted">
+              <div className="space-y-3 text-base leading-relaxed text-utpl-text">
                 <p>
-                  Gracias por contactarse con la UTPL. Es un gusto atenderle. Le informamos que
-                  nuestro horario de atención está próximo a finalizar.
+                  💙💛 Gracias por contactarse con la UTPL. Es un gusto atenderle{' '}
+                  <span role="img" aria-label="apretón de manos">🤝</span>.
+                  Le informamos que nuestro horario de atención está próximo a finalizar.
                 </p>
                 <p>
-                  Pero no se preocupe: su consulta quedará registrada y será retomada por nuestro
-                  equipo el siguiente día hábil a partir de las 08:00, sin necesidad de que vuelva a
-                  escribirnos, para brindarle toda la información adicional que requiera.
+                  Pero no se preocupe: <span role="img" aria-label="bandeja de entrada">📩</span>{' '}
+                  su consulta quedará registrada y será retomada por nuestro equipo el siguiente
+                  día hábil a partir de las 08:00, sin necesidad de que vuelva a escribirnos,
+                  para brindarle toda la información adicional que requiera.
                 </p>
               </div>
-
-              <div className="my-6 flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-utpl-muted">
-                  Horario
-                </span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <motion.div
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.02 }}
-                  className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-center transition-shadow hover:shadow-md"
-                >
-                  <div className="mb-2 flex items-center justify-center gap-1.5">
-                    <Sun className="h-4 w-4 text-amber-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-utpl-muted">
-                      Mañana
-                    </span>
-                  </div>
-                  <p className="text-lg font-black tracking-tight text-utpl-blue sm:text-xl">
-                    08:00 — 13:00
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.02 }}
-                  className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-center transition-shadow hover:shadow-md"
-                >
-                  <div className="mb-2 flex items-center justify-center gap-1.5">
-                    <Moon className="h-4 w-4 text-blue-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-utpl-muted">
-                      Tarde
-                    </span>
-                  </div>
-                  <p className="text-lg font-black tracking-tight text-utpl-blue sm:text-xl">
-                    15:00 — 18:00
-                  </p>
-                </motion.div>
-              </div>
-
-              <p className="mt-3 text-center text-[10px] font-semibold uppercase tracking-wider text-utpl-muted">
-                Lunes a viernes | Sábados: 09:00 - 14:00
-              </p>
-
-              <div className="my-4 flex justify-center">
-                <a
-                  href="https://forms.office.com/r/q4pCSrHhGB"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-utpl-blue underline decoration-utpl-gold/50 underline-offset-4 transition-colors hover:text-utpl-blue-hover"
-                >
-                  Completar datos en formulario alternativo
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </div>
-
-              {!isLunch && (
-                <motion.div variants={itemVariants}>
-                  <div className="my-6 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-slate-200" />
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-utpl-surface">
-                      <Phone className="h-4 w-4 text-utpl-blue" />
-                    </div>
-                    <div className="h-px flex-1 bg-slate-200" />
-                  </div>
-
-                  <p className="text-center text-base font-bold text-utpl-blue">
-                    ¿Te llamamos nosotros?
-                  </p>
-                  <p className="mt-1 text-center text-sm text-utpl-muted">
-                    Deja tus datos y un asesor te contactará el siguiente día hábil.
-                  </p>
-
-                  <div className="mt-5 flex justify-center">
-                    <motion.button
-                      type="button"
-                      onClick={() => setShowTimeModal(true)}
-                      aria-label="Agendar una llamada con un asesor"
-                      className="inline-flex items-center gap-2 rounded-xl bg-utpl-blue px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-utpl-blue-hover focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <Calendar className="h-4 w-4" />
-                      Agendar llamada
-                    </motion.button>
-                  </div>
-                </motion.div>
-              )}
-
-              <p className="mt-6 text-center text-xs font-bold tracking-wider text-utpl-blue">
-                ¡UTPL decide ser MÁS!
-              </p>
             </div>
           </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="rounded-xl bg-white px-6 py-7 shadow-md sm:px-8"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-slate-200" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-utpl-muted">
+                Horario
+              </span>
+              <div className="h-px flex-1 bg-slate-200" />
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-center transition-shadow hover:border-utpl-gold/30 hover:shadow-md">
+                <div className="mb-2 flex items-center justify-center gap-1.5">
+                  <Sun className="h-4 w-4 text-utpl-gold" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-utpl-muted">
+                    Mañana
+                  </span>
+                </div>
+                <p className="text-lg font-black tracking-tight text-utpl-blue sm:text-xl">
+                  08:00 — 13:00
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-center transition-shadow hover:border-utpl-gold/30 hover:shadow-md">
+                <div className="mb-2 flex items-center justify-center gap-1.5">
+                  <Moon className="h-4 w-4 text-utpl-blue" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-utpl-muted">
+                    Tarde
+                  </span>
+                </div>
+                <p className="text-lg font-black tracking-tight text-utpl-blue sm:text-xl">
+                  15:00 — 18:00
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-3 text-center text-[10px] font-semibold uppercase tracking-wider text-utpl-muted">
+              Lunes a viernes | Sábados: 09:00 - 14:00
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="rounded-xl bg-white px-6 py-7 shadow-md sm:px-8"
+          >
+            <div className="text-center text-sm leading-relaxed text-utpl-muted">
+              <p>
+                Agradecemos su comprensión y quedamos atentos para brindarle una atención oportuna.
+              </p>
+            </div>
+
+            <div className="mt-4 flex justify-center">
+              <a
+                href="https://forms.office.com/r/q4pCSrHhGB"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-utpl-surface px-5 py-2.5 text-sm font-semibold text-utpl-blue transition-colors hover:bg-utpl-gold/20 hover:text-utpl-navy focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                Completar datos en formulario alternativo
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </motion.div>
+
+          {!isLunch && (
+            <motion.div
+              variants={itemVariants}
+              className="rounded-xl bg-white px-6 py-7 shadow-md sm:px-8"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-slate-200" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-utpl-surface">
+                  <Phone className="h-4 w-4 text-utpl-blue" />
+                </div>
+                <div className="h-px flex-1 bg-slate-200" />
+              </div>
+
+              <p className="mt-5 text-center text-base font-bold text-utpl-blue">
+                ¿Te llamamos nosotros?
+              </p>
+              <p className="mt-1 text-center text-sm text-utpl-muted">
+                Deja tus datos y un asesor te contactará el siguiente día hábil.
+              </p>
+
+              <div className="mt-5 flex justify-center">
+                <motion.button
+                  type="button"
+                  onClick={() => setShowTimeModal(true)}
+                  aria-label="Agendar una llamada con un asesor"
+                  className="inline-flex items-center gap-2 rounded-xl bg-utpl-blue px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-utpl-blue-hover focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <Calendar className="h-4 w-4" />
+                  Agendar llamada
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          <motion.p
+            variants={itemVariants}
+            className="text-center text-xs font-bold tracking-wider text-utpl-blue"
+          >
+            ¡UTPL decide ser MÁS!
+          </motion.p>
         </motion.div>
       </main>
 
-      <footer className="relative z-10 shrink-0 bg-slate-900 py-4 text-center">
-        <p className="text-xs text-slate-500">
+      <footer className="relative z-10 shrink-0 bg-utpl-navy py-5 text-center">
+        <p className="text-xs tracking-wider text-white/50">
           &copy; {new Date().getFullYear()} Universidad Técnica Particular de Loja
         </p>
       </footer>
