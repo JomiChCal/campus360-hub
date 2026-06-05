@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
-  Calendar,
   Clock,
   Moon,
   Phone,
@@ -122,10 +121,7 @@ export default function FueraHorarioPage() {
                     <Moon className="h-4 w-4 text-blue-500" />
                     Lun-Vie 15:00 — 18:00
                   </div>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
-                    <Calendar className="h-4 w-4 text-amber-500" />
-                    Sáb 09:00 — 14:00
-                  </div>
+
                 </div>
               </div>
 
