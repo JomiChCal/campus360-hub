@@ -68,6 +68,12 @@ export default function FueraHorarioPage() {
                 )}
               </motion.div>
 
+              <div className="mb-1 text-center">
+                <h1 className="text-3xl font-black tracking-tight text-utpl-blue sm:text-5xl">
+                  decide ser <span className="text-utpl-gold">+</span>
+                </h1>
+              </div>
+
               <h2 className="text-center text-2xl font-black text-utpl-blue sm:text-3xl">
                 {isLunch ? 'Pausa temporal' : 'Fuera de horario'}
               </h2>
