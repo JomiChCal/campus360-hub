@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import {
+  ArrowRight,
   Calendar,
   Clock,
   ExternalLink,
@@ -16,23 +17,6 @@ import MobileWarningModal from '@/components/MobileWarningModal';
 import Modal from '@/components/Modal';
 import PageHeader from '@/components/PageHeader';
 import { CONTACT_TIME_OPTIONS, getBusinessHoursState } from '@/lib/business-hours';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.12 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
-  },
-};
 
 export default function FueraHorarioPage() {
   const router = useRouter();
@@ -53,18 +37,16 @@ export default function FueraHorarioPage() {
 
       <div className="bg-utpl-navy">
         <section className="relative z-10 overflow-hidden pb-6 pt-16 text-center">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,200,66,0.08),transparent_70%)]" />
-          <div className="relative mx-auto max-w-3xl px-4">
-            <motion.div
+          <div className="mx-auto max-w-3xl px-4">
+            <motion.h1
+              className="font-display text-[52px] font-extrabold leading-[1] tracking-tight text-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
-              <h1 className="font-display text-[52px] font-extrabold leading-[1] tracking-tight text-white">
-                decide ser{' '}
-                <span className="text-utpl-gold">+</span>
-              </h1>
-            </motion.div>
+              decide ser{' '}
+              <span className="text-utpl-gold">+</span>
+            </motion.h1>
           </div>
         </section>
 
@@ -95,166 +77,108 @@ export default function FueraHorarioPage() {
         </section>
       </div>
 
-      <main className="relative z-10 mx-auto flex w-full flex-1 max-w-3xl flex-col px-4 py-10">
+      <main className="relative z-10 mx-auto flex w-full flex-1 items-center justify-center px-4 py-12">
         <motion.div
-          className="space-y-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          className="w-full max-w-xl"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         >
-          <motion.div
-            variants={itemVariants}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-utpl-navy to-[#0a2550] px-8 py-10 shadow-xl sm:px-12"
-          >
-            <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-utpl-gold/10 blur-2xl" />
-            <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-utpl-gold/5 blur-xl" />
+          <div className="rounded-2xl bg-white px-10 py-12 shadow-lg sm:px-14 sm:py-16">
+            <div className="space-y-10">
+              <div className="text-center">
+                <div className="mb-6 flex justify-center gap-3">
+                  <span className="text-4xl" role="img" aria-label="corazones">💙</span>
+                  <span className="text-4xl" role="img" aria-label="corazones">💛</span>
+                </div>
 
-            <div className="relative">
-              <div className="mb-6 flex items-center gap-3">
-                <span className="text-3xl" role="img" aria-label="corazones">💙💛</span>
-              </div>
+                <h2 className="font-display text-3xl font-extrabold leading-tight text-utpl-navy sm:text-4xl">
+                  Gracias por contactarte
+                  <br />
+                  con la UTPL
+                </h2>
 
-              <h2 className="font-display text-3xl font-extrabold leading-tight text-white sm:text-4xl">
-                Gracias por contactarse
-                <br />
-                con la UTPL
-              </h2>
-
-              <div className="mt-3 flex items-center gap-2">
-                <span className="text-lg">🤝</span>
-                <span className="font-display text-lg font-bold text-utpl-gold">
-                  Es un gusto atenderle
-                </span>
-              </div>
-
-              <div className="mt-6 h-px w-16 bg-utpl-gold/40" />
-
-              <p className="mt-6 max-w-lg text-base leading-relaxed text-white/80">
-                Le informamos que nuestro horario de atención está próximo a finalizar.
-              </p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="rounded-2xl border-l-4 border-l-utpl-gold bg-white px-8 py-7 shadow-lg sm:px-10"
-          >
-            <div className="flex items-start gap-5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-utpl-gold/10">
-                <span className="text-2xl" role="img" aria-label="bandeja">📩</span>
-              </div>
-              <div className="space-y-3">
-                <p className="text-base leading-relaxed text-utpl-text">
-                  Pero no se preocupe: su consulta{' '}
-                  <span className="font-bold text-utpl-gold">quedará registrada</span> y será
-                  retomada por nuestro equipo el{' '}
-                  <span className="font-bold text-utpl-gold">siguiente día hábil a partir de las
-                  08:00</span>, sin necesidad de que vuelva a escribirnos, para brindarle toda la
-                  información adicional que requiera.
-                </p>
-                <div className="inline-flex items-center gap-2 rounded-full bg-utpl-surface px-4 py-2">
-                  <Clock className="h-4 w-4 text-utpl-blue" />
-                  <span className="text-xs font-bold tracking-wide text-utpl-blue">
-                    Retomamos: siguiente día hábil desde las 08:00
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <span className="text-xl" role="img" aria-label="mano">🤝</span>
+                  <span className="font-display text-lg font-bold text-utpl-gold">
+                    Es un gusto atenderte
                   </span>
                 </div>
               </div>
-            </div>
-          </motion.div>
 
-          <motion.div
-            variants={itemVariants}
-            className="rounded-2xl bg-white px-8 py-7 shadow-lg sm:px-10"
-          >
-            <div className="flex items-center gap-3">
-              <Clock className="h-5 w-5 text-utpl-gold" />
-              <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-utpl-navy">
-                Horario de atención
-              </h3>
-            </div>
-
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3">
-                <Sun className="h-4 w-4 text-utpl-gold" />
-                <span className="text-sm font-semibold text-utpl-text">
-                  Lun - Vie: <span className="font-black text-utpl-blue">08:00 — 13:00</span>
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3">
-                <Moon className="h-4 w-4 text-utpl-blue" />
-                <span className="text-sm font-semibold text-utpl-text">
-                  Lun - Vie: <span className="font-black text-utpl-blue">15:00 — 18:00</span>
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3">
-                <Calendar className="h-4 w-4 text-utpl-gold" />
-                <span className="text-sm font-semibold text-utpl-text">
-                  Sáb: <span className="font-black text-utpl-blue">09:00 — 14:00</span>
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-xl bg-utpl-surface px-5 py-4">
-              <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-                <p className="text-sm leading-relaxed text-utpl-muted">
-                  Por favor, te solicitamos completar tus datos en el siguiente enlace:
+              <div className="space-y-5 text-center text-base leading-relaxed text-utpl-text">
+                <p>
+                  Te informamos que nuestro horario de atención ha finalizado. Pero no te
+                  preocupes:{' '}
+                  <span className="font-bold text-utpl-gold">tu consulta quedó registrada</span> y
+                  será retomada por nuestro equipo el siguiente día hábil a partir de las 08:00.
                 </p>
+                <p className="text-sm text-utpl-muted">
+                  No necesitas volver a escribirnos, te brindaremos toda la información adicional
+                  que requieras en ese momento.
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-utpl-surface px-6 py-5">
+                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
+                    <Sun className="h-4 w-4 text-utpl-gold" />
+                    Lun-Vie 08:00 — 13:00
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
+                    <Moon className="h-4 w-4 text-utpl-blue" />
+                    Lun-Vie 15:00 — 18:00
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
+                    <Calendar className="h-4 w-4 text-utpl-gold" />
+                    Sáb 09:00 — 14:00
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-4">
                 <a
                   href="https://forms.office.com/r/q4pCSrHhGB"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-2.5 text-sm font-bold text-utpl-blue transition-all hover:border-utpl-blue/40 hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-utpl-blue underline decoration-utpl-gold/50 underline-offset-4 transition-colors hover:text-utpl-blue-hover"
                 >
-                  Formulario alternativo
-                  <ExternalLink className="h-4 w-4" />
+                  Completar datos en formulario alternativo
+                  <ExternalLink className="h-3.5 w-3.5" />
                 </a>
+
+                {!isLunch && (
+                  <div className="flex flex-col items-center gap-3 pt-2">
+                    <div className="h-px w-32 bg-slate-200" />
+                    <p className="text-center text-sm font-semibold text-utpl-text">
+                      ¿Prefieres que te llamemos?
+                    </p>
+                    <motion.button
+                      type="button"
+                      onClick={() => setShowTimeModal(true)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-utpl-blue px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-utpl-blue-hover hover:shadow-lg active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <Phone className="h-4 w-4" />
+                      Agendar llamada
+                      <ArrowRight className="h-4 w-4" />
+                    </motion.button>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2 text-center">
+                <p className="text-sm leading-relaxed text-utpl-muted">
+                  Agradecemos tu comprensión y quedamos atentos para brindarte una atención
+                  oportuna.
+                </p>
+                <p className="mt-4 font-display text-xl font-extrabold tracking-tight text-utpl-blue">
+                  ¡UTPL decide ser MÁS!
+                </p>
               </div>
             </div>
-          </motion.div>
-
-          {!isLunch && (
-            <motion.div
-              variants={itemVariants}
-              className="rounded-2xl bg-white px-8 py-7 shadow-lg sm:px-10"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-utpl-surface">
-                  <Phone className="h-7 w-7 text-utpl-blue" />
-                </div>
-
-                <h3 className="mt-4 text-xl font-black text-utpl-blue">
-                  ¿Te llamamos nosotros?
-                </h3>
-                <p className="mt-1 text-sm text-utpl-muted">
-                  Deja tus datos y un asesor te contactará el siguiente día hábil.
-                </p>
-
-                <motion.button
-                  type="button"
-                  onClick={() => setShowTimeModal(true)}
-                  aria-label="Agendar una llamada con un asesor"
-                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-utpl-blue px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-utpl-blue-hover hover:shadow-lg active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <Calendar className="h-4 w-4" />
-                  Agendar llamada
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
-
-          <motion.div
-            variants={itemVariants}
-            className="text-center"
-          >
-            <p className="text-sm leading-relaxed text-utpl-muted">
-              Agradecemos su comprensión y quedamos atentos para brindarle una atención oportuna.
-            </p>
-            <p className="mt-4 font-display text-lg font-extrabold tracking-tight text-utpl-blue">
-              ¡UTPL decide ser MÁS!
-            </p>
-          </motion.div>
+          </div>
         </motion.div>
       </main>
 
