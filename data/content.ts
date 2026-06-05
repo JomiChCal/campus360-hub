@@ -1,7 +1,7 @@
 export const c = {
   layout: {
-    brand: 'Campus',
-    brandAccent: '360',
+    brand: 'decide ser ',
+    brandAccent: '+',
     errorHeading: 'Error',
     footer: 'Universidad Técnica Particular de Loja',
     loading: 'Cargando...',
