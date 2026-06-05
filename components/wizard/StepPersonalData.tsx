@@ -80,7 +80,7 @@ export default function StepPersonalData({ onPrev }: StepPersonalDataProperties)
 
         <div className="grid gap-4 sm:grid-cols-2">
           <InputField
-            label="Número de cédula"
+            label="Identificación (cédula, pasaporte o RUC)"
             icon={CreditCard}
             value={data.cedula}
             onChange={(v) => updateField('cedula', v.replaceAll(/\D/g, ''))}
@@ -160,7 +160,7 @@ export default function StepPersonalData({ onPrev }: StepPersonalDataProperties)
         )}
 
         <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-          <label className="flex cursor-pointer items-start gap-3 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 rounded-xl">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2">
             <input
               type="checkbox"
               checked={data.acceptedPrivacy}
@@ -170,10 +170,14 @@ export default function StepPersonalData({ onPrev }: StepPersonalDataProperties)
               className="accent-utpl-blue mt-0.5 h-5 w-5 rounded border-gray-300 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
             />
             <span className="text-sm leading-relaxed text-utpl-text">
-              Al enviar el presente formulario, autorizo en forma expresa a la UTPL, para realizar
-              el tratamiento de mis datos personales con la finalidad de contactarme y brindarme
-              asesoría sobre sus servicios. Para más información, consulta nuestra política de
-              privacidad en:{' '}
+              Al enviar este formulario autorizo expresamente a la Universidad Técnica Particular de
+              Loja a recopilar, almacenar y tratar mis datos personales, que constan en este
+              documento, con la finalidad exclusiva de gestionar, atender, analizar y dar respuesta a
+              mis requerimientos académicos y administrativos. La UTPL implementará medidas técnicas
+              y organizativas adecuadas para garantizar la seguridad de los datos personales,
+              evitando su alteración, pérdida, tratamiento o acceso no autorizado. Para acceder a más
+              información sobre el tratamiento de datos personales, puede consultar la Política de
+              Privacidad de la UTPL, disponible en el siguiente enlace:{' '}
               <a
                 href="https://www.utpl.edu.ec/privacidad"
                 target="_blank"

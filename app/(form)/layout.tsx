@@ -9,8 +9,7 @@ import MobileWarningModal from '@/components/MobileWarningModal';
 import PageHeader from '@/components/PageHeader';
 import StepIndicator from '@/components/StepIndicator';
 import GuideModal from '@/components/wizard/GuideModal';
-import RatingModal from '@/components/wizard/RatingModal';
-import { FormProvider, useFormActions, useFormState } from '@/contexts/FormContext';
+import { FormProvider, useFormContext } from '@/contexts/FormContext';
 import { c } from '@/data/content';
 import { buildRoute } from '@/lib/navigation-utilities';
 
@@ -33,9 +32,13 @@ const STEP_TO_ROUTE: Record<number, string> = {
 function FormShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParameters = useSearchParams();
-  const { data, submitError, guideModalOpen, ratingModalOpen, closeRatingModal } =
-    useFormState();
-  const { setStep } = useFormActions();
+  const {
+    data,
+    dispatch,
+    submitError,
+    guideModalOpen,
+    setStep,
+  } = useFormContext();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -71,9 +74,6 @@ function FormShell({ children }: { children: React.ReactNode }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="mb-3 inline-block rounded-full border border-white/15 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[2.5px] text-white/70">
-              Asesoría Virtual
-            </span>
             <h1 className="font-display text-[52px] font-extrabold leading-[1] tracking-tight text-white">
               {c.layout.brand}
               <span className="text-utpl-gold">{c.layout.brandAccent}</span>
@@ -121,7 +121,9 @@ function FormShell({ children }: { children: React.ReactNode }) {
             exit={{ opacity: 0, x: -24 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
-            {children}
+            <div className="rounded-xl bg-white px-6 py-7 sm:px-8">
+              {children}
+            </div>
           </motion.div>
         </AnimatePresence>
       </main>
@@ -133,10 +135,6 @@ function FormShell({ children }: { children: React.ReactNode }) {
       </footer>
 
       <GuideModal isOpen={guideModalOpen} />
-      <RatingModal
-        isOpen={ratingModalOpen}
-        onClose={closeRatingModal}
-      />
       <MobileWarningModal />
     </div>
   );

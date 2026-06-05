@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer } from 'react';
 
 import { validateStep } from '@/lib/validation';
 import type { FormAction, FormData, UserType } from '@/types/form';
@@ -61,9 +61,6 @@ function clearStorage() {
 
 function formReducer(state: FormData, action: FormAction): FormData {
   switch (action.type) {
-    case 'HYDRATE_FROM_STORAGE': {
-      return { ...state, ...action.data };
-    }
     case 'SET_STEP': {
       return { ...state, step: action.step, attemptedStepValidation: null };
     }
@@ -133,18 +130,11 @@ export function getPreviousStep(userType: UserType, currentStep: number): number
 }
 
 export function useFormWizard() {
-  const [data, dispatch] = useReducer(formReducer, initialFormData);
-  const [storageHydrated, setStorageHydrated] = useState(false);
+  const [data, dispatch] = useReducer(formReducer, undefined, loadFromStorage);
 
   useEffect(() => {
-    dispatch({ type: 'HYDRATE_FROM_STORAGE', data: loadFromStorage() });
-    setStorageHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!storageHydrated) return;
     saveToStorage(data);
-  }, [data, storageHydrated]);
+  }, [data]);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });

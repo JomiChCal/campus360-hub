@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import StepUserType from '@/components/wizard/StepUserType';
-import { useFormActions } from '@/contexts/FormContext';
+import { useFormContext } from '@/contexts/FormContext';
 import { c } from '@/data/content';
 import { buildRoute } from '@/lib/navigation-utilities';
 
@@ -55,7 +55,7 @@ function RecordingNotice() {
 function TipoContent() {
   const router = useRouter();
   const searchParameters = useSearchParams();
-  const { setUserType } = useFormActions();
+  const { setUserType } = useFormContext();
 
   const handleSelectUserType = (type: 'estudiante' | 'aspirante') => {
     setUserType(type);
@@ -87,10 +87,7 @@ function TipoContent() {
         />
       </motion.div>
 
-      <motion.div
-        variants={itemVariants}
-        className="rounded-t-[20px] bg-white px-6 py-7 sm:px-8"
-      >
+      <motion.div variants={itemVariants}>
         <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.15em] text-utpl-muted">
           Selecciona tu tipo de usuario
         </p>

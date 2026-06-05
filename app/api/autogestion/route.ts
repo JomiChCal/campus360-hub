@@ -1,30 +1,7 @@
-import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
 import { checkRateLimit, getClientIp, sanitizeInput, validateRequired } from '@/lib/api-utilities';
-import {
-  applySheetStyling,
-  ensureAsesorValidation,
-  ensureHeadersAndFormat,
-  getAuth,
-  SHEETS_ID,
-} from '@/lib/sheets-auth';
-
-const SHEET_ID = 2_087_838_389;
-
-const HEADERS = [
-  'Fecha',
-  'Nombres',
-  'Cédula',
-  'Correo',
-  'Teléfono',
-  'Servicio',
-  'País',
-  'Prefijo',
-  'Modalidad',
-  'Resultado',
-  'Asesor',
-];
+import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/power-automate';
 
 interface AutogestionData {
   fecha: string;
@@ -64,43 +41,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validErrors.join(', ') }, { status: 400 });
     }
 
-    const auth = getAuth();
-    await auth.authorize();
-
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    await ensureHeadersAndFormat(auth, sheets, 'AUTOGESTION', SHEET_ID, HEADERS);
-    await ensureAsesorValidation(sheets, 'AUTOGESTION', SHEET_ID, 10);
-    await applySheetStyling(auth, sheets, 'AUTOGESTION', SHEET_ID, 10);
-
-    await sheets.spreadsheets.values.append({
-      auth,
-      spreadsheetId: SHEETS_ID,
-      range: 'AUTOGESTION!A:K',
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: [
-          [
-            sanitizeInput(data.fecha),
-            sanitizeInput(data.nombres),
-            sanitizeInput(data.cedula),
-            sanitizeInput(data.email),
-            sanitizeInput(data.telefono ?? ''),
-            sanitizeInput(data.servicio),
-            sanitizeInput(data.pais ?? 'Ecuador'),
-            sanitizeInput(data.prefijoTelefonico ?? '+593'),
-            sanitizeInput(data.modalidad ?? '-'),
-            sanitizeInput(data.resultado),
-            sanitizeInput(''),
-          ],
-        ],
-      },
+    await callPowerAutomate(WEBHOOK_URLS.crearAutogestion, {
+      fecha: sanitizeInput(data.fecha),
+      nombres: sanitizeInput(data.nombres),
+      cedula: sanitizeInput(data.cedula),
+      correo: sanitizeInput(data.email),
+      telefono: sanitizeInput(data.telefono ?? ''),
+      servicio: sanitizeInput(data.servicio),
+      pais: sanitizeInput(data.pais ?? 'Ecuador'),
+      prefijo: sanitizeInput(data.prefijoTelefonico ?? '+593'),
+      modalidad: sanitizeInput(data.modalidad ?? '-'),
+      resultado: sanitizeInput(data.resultado),
+      asesor: '',
     });
 
-    console.log(' Autogestión guardada en Google Sheet');
+    console.log('Autogestión guardada exitosamente');
     return NextResponse.json({ success: true, message: 'Autogestión guardada' });
   } catch (error) {
-    console.error(' Error:', String(error));
+    console.error('Error:', String(error));
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }

@@ -59,6 +59,8 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
                 aria-current={isCurrent ? 'step' : undefined}
               >
                 <motion.div
+                  animate={isCurrent ? { scale: [1, 1.06, 1] } : {}}
+                  transition={{ duration: 0.5 }}
                   className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-11 sm:w-11 ${
                     isCurrent
                       ? 'border-utpl-gold bg-utpl-gold text-utpl-navy'

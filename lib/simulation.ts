@@ -1,3 +1,11 @@
+export function formatTurnoForDisplay(turnoNumber: string): string {
+  const number_ = Number.parseInt(turnoNumber, 10);
+  if (Number.isNaN(number_)) return turnoNumber;
+  return String(number_);
+}
+
+export { generateZoomLink, generateWebZoomLink } from './zoom';
+
 function getFechaHora(): string {
   return new Date().toLocaleString('es-EC', {
     year: 'numeric',
@@ -8,28 +16,6 @@ function getFechaHora(): string {
     second: '2-digit',
   });
 }
-
-export async function getNextTurnoNumber(): Promise<string> {
-  let nextNumber = 1;
-  try {
-    const response = await fetch('/api/turno?action=next');
-    if (response.ok) {
-      const data = await response.json();
-      nextNumber = data.nextNumber;
-    }
-  } catch (error) {
-    console.error('Error obteniendo número de turno:', error);
-  }
-  return String(nextNumber).padStart(3, '0');
-}
-
-export function formatTurnoForDisplay(turnoNumber: string): string {
-  const number_ = Number.parseInt(turnoNumber, 10);
-  if (Number.isNaN(number_)) return turnoNumber;
-  return String(number_);
-}
-
-export { generateZoomLink, generateWebZoomLink } from './zoom';
 
 export async function logAutogestion(
   nombres: string,
@@ -73,61 +59,7 @@ export async function logAutogestion(
       }),
     });
   } catch (error) {
-    console.error('Error guardando en Google Sheet:', error);
-  }
-}
-
-export async function logTurno(
-  nombres: string,
-  apellidos: string,
-  cedula: string,
-  email: string,
-  telefono: string,
-  turno: string,
-  servicio: string,
-  modalidad?: string,
-  origen: string = 'TURNO'
-): Promise<void> {
-  const fechaHora = getFechaHora();
-  const nombreCompleto = `${nombres} ${apellidos}`;
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log('═══════════════════════════════════════════');
-    console.log('  TABLA TURNOS ASESORÍA — Registro guardado');
-    console.log('═══════════════════════════════════════════');
-    console.table([
-      {
-        Fecha: fechaHora,
-        Nombre: nombreCompleto,
-        Cédula: cedula,
-        Correo: email,
-        Teléfono: telefono,
-        Turno: turno,
-        Origen: origen,
-        Modalidad: modalidad ?? '-',
-        Servicio: servicio,
-      },
-    ]);
-  }
-
-  try {
-    await fetch('/api/turno', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fecha: fechaHora,
-        nombres: nombreCompleto,
-        cedula,
-        email,
-        telefono,
-        turno,
-        origen,
-        modalidad: modalidad ?? '-',
-        servicio,
-      }),
-    });
-  } catch (error) {
-    console.error('Error guardando en Google Sheet:', error);
+    console.error('Error guardando en autogestión:', error);
   }
 }
 
