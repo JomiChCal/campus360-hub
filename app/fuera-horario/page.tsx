@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Calendar,
   Clock,
-  ExternalLink,
   Moon,
   Phone,
   Sun,
@@ -79,7 +78,7 @@ export default function FueraHorarioPage() {
 
       <main className="relative z-10 mx-auto flex w-full flex-1 items-center justify-center px-4 py-12">
         <motion.div
-          className="w-full max-w-4xl"
+          className="w-full max-w-3xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -131,18 +130,8 @@ export default function FueraHorarioPage() {
               </div>
 
               <div className="flex flex-col items-center gap-4">
-                <a
-                  href="https://forms.office.com/r/q4pCSrHhGB"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-utpl-blue underline decoration-utpl-blue/30 underline-offset-4 transition-colors hover:text-utpl-blue-hover"
-                >
-                  Completar datos en formulario alternativo
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-
                 {!isLunch && (
-                  <div className="flex flex-col items-center gap-3 pt-2">
+                  <div className="flex flex-col items-center gap-3">
                     <div className="h-px w-32 bg-slate-200" />
                     <p className="text-center text-sm font-semibold text-utpl-text">
                       ¿Prefieres que te llamemos?
