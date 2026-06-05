@@ -70,7 +70,7 @@ export default function FueraHorarioPage() {
                 <Moon className="h-5 w-5 text-utpl-gold" />
               )}
               <span className="text-sm font-semibold tracking-wide text-white">
-                {isLunch ? 'Pausa temporal — volvemos a las 15:00' : 'Fuera de horario'}
+                {isLunch ? 'Pausa temporal — volvemos a las 15:00' : 'Horario finalizado'}
               </span>
             </motion.div>
           </div>
@@ -88,8 +88,8 @@ export default function FueraHorarioPage() {
             <div className="space-y-10">
               <div className="text-center">
                 <div className="mb-6 flex justify-center gap-3">
-                  <span className="text-4xl" role="img" aria-label="corazones">💙</span>
-                  <span className="text-4xl" role="img" aria-label="corazones">💛</span>
+                  <span className="text-4xl" role="img" aria-label="corazón azul">💙</span>
+                  <span className="text-4xl" role="img" aria-label="corazón amarillo">💛</span>
                 </div>
 
                 <h2 className="font-display text-3xl font-extrabold leading-tight text-utpl-navy sm:text-4xl">
@@ -100,7 +100,7 @@ export default function FueraHorarioPage() {
 
                 <div className="mt-4 flex items-center justify-center gap-2">
                   <span className="text-xl" role="img" aria-label="mano">🤝</span>
-                  <span className="font-display text-lg font-bold text-utpl-gold">
+                  <span className="font-display text-lg font-bold text-utpl-navy">
                     Es un gusto atenderte
                   </span>
                 </div>
@@ -108,10 +108,9 @@ export default function FueraHorarioPage() {
 
               <div className="space-y-5 text-center text-base leading-relaxed text-utpl-text">
                 <p>
-                  Te informamos que nuestro horario de atención ha finalizado. Pero no te
-                  preocupes:{' '}
-                  <span className="font-bold text-utpl-gold">tu consulta quedó registrada</span> y
-                  será retomada por nuestro equipo el siguiente día hábil a partir de las 08:00.
+                  Nuestro horario de atención ha finalizado por hoy. Pero no te preocupes:{' '}
+                  <span className="font-semibold text-utpl-blue">tu consulta quedó registrada</span>{' '}
+                  y será retomada por nuestro equipo el siguiente día hábil a partir de las 08:00.
                 </p>
                 <p className="text-sm text-utpl-muted">
                   No necesitas volver a escribirnos, te brindaremos toda la información adicional
@@ -119,18 +118,18 @@ export default function FueraHorarioPage() {
                 </p>
               </div>
 
-              <div className="rounded-xl bg-utpl-surface px-6 py-5">
+              <div className="rounded-xl bg-slate-50 px-6 py-5">
                 <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                   <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
-                    <Sun className="h-4 w-4 text-utpl-gold" />
+                    <Sun className="h-4 w-4 text-amber-500" />
                     Lun-Vie 08:00 — 13:00
                   </div>
                   <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
-                    <Moon className="h-4 w-4 text-utpl-blue" />
+                    <Moon className="h-4 w-4 text-blue-500" />
                     Lun-Vie 15:00 — 18:00
                   </div>
                   <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
-                    <Calendar className="h-4 w-4 text-utpl-gold" />
+                    <Calendar className="h-4 w-4 text-amber-500" />
                     Sáb 09:00 — 14:00
                   </div>
                 </div>
@@ -141,7 +140,7 @@ export default function FueraHorarioPage() {
                   href="https://forms.office.com/r/q4pCSrHhGB"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-utpl-blue underline decoration-utpl-gold/50 underline-offset-4 transition-colors hover:text-utpl-blue-hover"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-utpl-blue underline decoration-utpl-blue/30 underline-offset-4 transition-colors hover:text-utpl-blue-hover"
                 >
                   Completar datos en formulario alternativo
                   <ExternalLink className="h-3.5 w-3.5" />
@@ -173,7 +172,7 @@ export default function FueraHorarioPage() {
                   Agradecemos tu comprensión y quedamos atentos para brindarte una atención
                   oportuna.
                 </p>
-                <p className="mt-4 font-display text-xl font-extrabold tracking-tight text-utpl-blue">
+                <p className="mt-4 font-display text-xl font-extrabold tracking-tight text-utpl-navy">
                   ¡UTPL decide ser MÁS!
                 </p>
               </div>
@@ -196,7 +195,7 @@ export default function FueraHorarioPage() {
       >
         <div className="space-y-6 py-2">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-utpl-surface shadow-sm">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-50 shadow-sm">
               <Clock className="h-7 w-7 text-utpl-blue" />
             </div>
             <div>
@@ -226,7 +225,7 @@ export default function FueraHorarioPage() {
                 >
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      isSelected ? 'bg-white/20' : 'bg-utpl-surface'
+                      isSelected ? 'bg-white/20' : 'bg-slate-50'
                     }`}
                   >
                     {isMorning ? (
