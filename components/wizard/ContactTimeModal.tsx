@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ExternalLink, Moon, Sun } from 'lucide-react';
+import { Clock, ExternalLink, Moon, Sun, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { CONTACT_TIME_OPTIONS } from '@/lib/business-hours';
@@ -63,6 +63,15 @@ export default function ContactTimeModal({ isOpen, onClose, onConfirm }: Contact
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute right-4 top-4 z-20 rounded-full p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-utpl-navy focus-visible:outline-none"
+              aria-label="Cerrar"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
             <div className="overflow-y-auto rounded-2xl">
               <div className="bg-gradient-to-br from-utpl-navy to-[#0a2550] px-8 py-10 text-center sm:px-10">
                 <div className="mb-4 flex justify-center gap-3">
