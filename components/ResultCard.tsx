@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle, Clock, Lock, Ticket, Video } from 'lucide-react';
 import { useState } from 'react';
 
-import { formatTurnoForDisplay, generateZoomLink, generateWebZoomLink } from '@/lib/simulation';
+import { formatTurnoForDisplay } from '@/lib/simulation';
 
 interface ResultCardProperties {
   mode: 'completed' | 'turno' | 'fuera-horario';
@@ -12,6 +12,8 @@ interface ResultCardProperties {
   nombres?: string;
   apellidos?: string;
   horaContacto?: string;
+  zoomLink?: string | null;
+  webZoomLink?: string | null;
 }
 
 const containerVariants = {
@@ -38,6 +40,8 @@ export default function ResultCard({
   nombres,
   apellidos,
   horaContacto,
+  zoomLink,
+  webZoomLink,
 }: ResultCardProperties) {
   if (mode === 'fuera-horario') {
     return (
@@ -120,9 +124,7 @@ export default function ResultCard({
     );
   }
 
-  if (mode === 'turno' && turnoNumber) {
-    const zoomLink = generateZoomLink(turnoNumber, nombres, apellidos);
-    const webZoomLink = generateWebZoomLink(turnoNumber, nombres, apellidos);
+  if (mode === 'turno' && turnoNumber && zoomLink && webZoomLink) {
     const displayNumber = formatTurnoForDisplay(turnoNumber);
 
     return (

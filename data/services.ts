@@ -149,6 +149,7 @@ export const serviceCatalog: ServiceCategory[] = [
 export function findServiceById(
   serviceId: string
 ): { category: ServiceCategory; service: ServiceCategory['services'][0] } | null {
+  if (!serviceId) return null;
   for (const category of serviceCatalog) {
     const service = category.services.find((s) => s.id === serviceId);
     if (service) {

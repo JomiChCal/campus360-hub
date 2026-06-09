@@ -35,6 +35,8 @@ function ResultadoContent() {
           turnoNumber={data.turnoNumber}
           nombres={data.nombres}
           apellidos={data.apellidos}
+          zoomLink={data.zoomLink}
+          webZoomLink={data.webZoomLink}
         />
       ) : null}
 

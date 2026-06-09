@@ -2,9 +2,10 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect } from 'react';
 
 import AnnouncementBanner from '@/components/AnnouncementBanner';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import MobileWarningModal from '@/components/MobileWarningModal';
 import PageHeader from '@/components/PageHeader';
 import StepIndicator from '@/components/StepIndicator';
@@ -126,7 +127,9 @@ function FormShell({ children }: { children: React.ReactNode }) {
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="rounded-xl bg-white px-6 py-7 sm:px-8">
-              {children}
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
             </div>
           </motion.div>
         </AnimatePresence>

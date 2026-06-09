@@ -48,8 +48,6 @@ export function FormProvider({
   const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [contactTimeModalOpen, setContactTimeModalOpen] = useState(false);
 
-  /* eslint-disable react-hooks/exhaustive-deps */
-
   const openGuideModal = useCallback(() => {
     setGuideModalOpen(true);
   }, []);
@@ -61,8 +59,6 @@ export function FormProvider({
   const closeContactTimeModal = useCallback(() => {
     setContactTimeModalOpen(false);
   }, []);
-
-  /* eslint-disable react-hooks/exhaustive-deps */
 
   const submitForm = useCallback(
     async (mode: ServiceMode, preSelectedContactTime: string = '') => {
@@ -82,6 +78,13 @@ export function FormProvider({
 
         if (result.success && result.turnoNumber) {
           wizard.dispatch({ type: 'SET_TURNO_NUMBER', turnoNumber: result.turnoNumber });
+          if (result.zoomLink && result.webZoomLink) {
+            wizard.dispatch({
+              type: 'SET_ZOOM_LINKS',
+              zoomLink: result.zoomLink,
+              webZoomLink: result.webZoomLink,
+            });
+          }
           wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'turno-assigned' });
         } else if (result.success) {
           wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'fuera-horario' });
@@ -101,6 +104,13 @@ export function FormProvider({
 
       if (result.success && result.turnoNumber) {
         wizard.dispatch({ type: 'SET_TURNO_NUMBER', turnoNumber: result.turnoNumber });
+        if (result.zoomLink && result.webZoomLink) {
+          wizard.dispatch({
+            type: 'SET_ZOOM_LINKS',
+            zoomLink: result.zoomLink,
+            webZoomLink: result.webZoomLink,
+          });
+        }
         wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'turno-assigned' });
       } else if (result.success) {
         wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'fuera-horario' });
@@ -131,26 +141,19 @@ export function FormProvider({
       wizard.data.pais
     );
     onNavigate?.('/resultado');
-  }, [wizard.data, wizard.dispatch, closeGuideModal, onNavigate]);
+  },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [wizard.data, wizard.dispatch, closeGuideModal, onNavigate]);
 
   const handleNeedAdvisorFromModal = useCallback(async () => {
     const match = findServiceById(wizard.data.selectedServiceId ?? '');
-    logAutogestion(
-      wizard.data.nombres,
-      wizard.data.apellidos,
-      wizard.data.cedula,
-      wizard.data.email,
-      match?.service.label ?? 'Servicio UTPL',
-      'REQUIERE TURNO',
-      wizard.data.pais
-    );
     closeGuideModal();
     wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'needs-advisor' });
-    const contactTime =
-      new URLSearchParams(globalThis.window?.location?.search ?? '').get('time') || '';
-    await submitForm('turno', contactTime);
+    await submitForm('turno');
     onNavigate?.('/resultado');
-  }, [wizard.data, wizard.dispatch, closeGuideModal, onNavigate, submitForm]);
+  },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [wizard.data, wizard.dispatch, closeGuideModal, submitForm, onNavigate]);
 
   const errors = useMemo(() => wizard.getStepErrors(), [wizard.getStepErrors]);
 
@@ -204,8 +207,6 @@ export function FormProvider({
       closeContactTimeModal,
     ]
   );
-
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   return <FormContext value={value}>{children}</FormContext>;
 }

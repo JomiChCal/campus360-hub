@@ -1,4 +1,4 @@
-const ZOOM_MEETING_ID = process.env.NEXT_PUBLIC_ZOOM_MEETING_ID ?? '89419717339';
+const ZOOM_MEETING_ID = process.env.ZOOM_MEETING_ID ?? '89419717339';
 
 export function generateZoomLink(
   turnoNumber: string,

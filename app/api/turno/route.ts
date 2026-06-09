@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 
+import { getCountryByName } from '@/data/countries';
 import {
   checkRateLimit,
   getClientIp,
   sanitizeInput,
-  validateCedula,
+  validateIdentification,
   validatePhone,
   validateRequired,
-} from '@/lib/api-utilities';
-import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/power-automate';
-import { getNextTurnoNumber } from '@/lib/turno-counter';
+} from '@/lib/server/api-utilities';
+import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/server/power-automate';
+import { getNextTurnoNumber } from '@/lib/server/turno-counter';
+import { generateZoomLink, generateWebZoomLink } from '@/lib/server/zoom';
 
 function todayDateOnly(): string {
   const d = new Date();
@@ -28,6 +30,7 @@ function getFechaHora(): string {
 }
 
 interface AsignarTurnoData {
+  requestId?: string;
   nombres: string;
   apellidos: string;
   cedula: string;
@@ -69,10 +72,11 @@ export async function PUT(request: Request) {
       validateRequired(data.servicio, 'Servicio') ?? '',
     ];
 
-    const cedulaError = validateCedula(data.cedula);
+    const cedulaError = validateIdentification(data.cedula);
     if (cedulaError) errors.push(cedulaError);
 
-    const phoneError = validatePhone(data.telefono);
+    const country = getCountryByName(data.pais ?? 'Ecuador');
+    const phoneError = validatePhone(data.telefono, country?.phoneDigits);
     if (phoneError) errors.push(phoneError);
 
     const validErrors = errors.filter((errorMessage) => errorMessage !== '');
@@ -86,6 +90,7 @@ export async function PUT(request: Request) {
     const nombreCompleto = `${data.nombres} ${data.apellidos}`;
 
     await callPowerAutomate(WEBHOOK_URLS.crearTurno, {
+      requestId: data.requestId,
       turno: sanitizeInput(turnoNumber),
       fecha: sanitizeInput(fechaHora),
       nombres: sanitizeInput(nombreCompleto),
@@ -101,8 +106,11 @@ export async function PUT(request: Request) {
       asesor: '',
     });
 
+    const zoomLink = generateZoomLink(turnoNumber, data.nombres, data.apellidos);
+    const webZoomLink = generateWebZoomLink(turnoNumber, data.nombres, data.apellidos);
+
     console.log(`Turno ${turnoNumber} asignado a ${nombreCompleto}`);
-    return NextResponse.json({ success: true, turnoNumber });
+    return NextResponse.json({ success: true, turnoNumber, zoomLink, webZoomLink });
   } catch (error) {
     console.error('Error:', String(error));
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });

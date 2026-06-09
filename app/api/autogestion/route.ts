@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 
-import { checkRateLimit, getClientIp, sanitizeInput, validateRequired } from '@/lib/api-utilities';
-import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/power-automate';
+import { checkRateLimit, getClientIp, sanitizeInput, validateIdentification, validateRequired } from '@/lib/server/api-utilities';
+import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/server/power-automate';
 
 interface AutogestionData {
+  requestId?: string;
   fecha: string;
   nombres: string;
   cedula: string;
@@ -36,12 +37,16 @@ export async function POST(request: Request) {
       validateRequired(data.resultado, 'Resultado') ?? '',
     ];
 
+    const cedulaError = validateIdentification(data.cedula);
+    if (cedulaError) errors.push(cedulaError);
+
     const validErrors = errors.filter((errorMessage) => errorMessage !== '');
     if (validErrors.length > 0) {
       return NextResponse.json({ error: validErrors.join(', ') }, { status: 400 });
     }
 
     await callPowerAutomate(WEBHOOK_URLS.crearAutogestion, {
+      requestId: data.requestId,
       fecha: sanitizeInput(data.fecha),
       nombres: sanitizeInput(data.nombres),
       cedula: sanitizeInput(data.cedula),

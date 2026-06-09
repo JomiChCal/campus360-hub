@@ -8,7 +8,8 @@ import type { UserType } from '@/types/form';
 interface StepConfig {
   label: string;
   Icon: typeof GraduationCap;
-  step: number;
+  visualStep: number;
+  wizardStep: number;
 }
 
 interface StepIndicatorProperties {
@@ -17,17 +18,26 @@ interface StepIndicatorProperties {
   onStepClick?: (step: number) => void;
 }
 
-function getAllSteps(): StepConfig[] {
+function getAllSteps(userType: UserType): StepConfig[] {
   return [
-    { step: 1, label: c.steps.indicador.paso1, Icon: UserPlus },
-    { step: 2, label: c.steps.indicador.paso2, Icon: User },
-    { step: 3, label: c.steps.indicador.turno, Icon: Ticket },
+    { visualStep: 1, wizardStep: 1, label: c.steps.indicador.paso1, Icon: UserPlus },
+    { visualStep: 2, wizardStep: 2, label: c.steps.indicador.paso2, Icon: User },
+    { visualStep: 3, wizardStep: userType === 'aspirante' ? 4 : 3, label: c.steps.indicador.turno, Icon: Ticket },
   ];
 }
 
-function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
-  const allSteps = getAllSteps();
-  const completedCount = allSteps.filter((s) => s.step < currentStep).length;
+function wizardStepToVisual(wizardStep: number, userType: UserType): number {
+  if (userType === 'aspirante') {
+    if (wizardStep <= 2) return wizardStep;
+    return wizardStep - 1;
+  }
+  return wizardStep;
+}
+
+function StepIndicator({ currentStep, userType, onStepClick }: StepIndicatorProperties) {
+  const allSteps = getAllSteps(userType);
+  const currentVisual = wizardStepToVisual(currentStep, userType);
+  const completedCount = allSteps.filter((s) => s.visualStep < currentVisual).length;
   const totalVisible = allSteps.length;
   const progressPercent = Math.max(0, (completedCount / (totalVisible - 1)) * 100);
 
@@ -39,8 +49,8 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
     >
       <div className="relative flex items-center justify-center gap-0">
         {allSteps.map((step, index) => {
-          const isCompleted = step.step < currentStep;
-          const isCurrent = step.step === currentStep;
+          const isCompleted = step.visualStep < currentVisual;
+          const isCurrent = step.visualStep === currentVisual;
           const canClick = isCompleted && onStepClick;
           const isLast = index === allSteps.length - 1;
 
@@ -52,7 +62,7 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
               <button
                 type="button"
                 disabled={!canClick}
-                onClick={canClick ? () => onStepClick(step.step) : undefined}
+                onClick={canClick ? () => onStepClick(step.wizardStep) : undefined}
                 className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-utpl-navy-medium focus-visible:outline-none ${
                   canClick ? 'cursor-pointer hover:scale-105' : 'cursor-default'
                 }`}
@@ -81,7 +91,7 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
               </button>
               {!isLast && (
                 <div className="mx-1.5 h-0.5 w-6 rounded-full bg-white/15 sm:mx-2 sm:w-8">
-                  {step.step < currentStep && (
+                  {isCompleted && (
                     <motion.div
                       className="h-full rounded-full bg-utpl-gold"
                       initial={{ width: 0 }}

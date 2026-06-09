@@ -21,6 +21,8 @@ interface UseTurnAssignmentReturn {
 interface AssignResult {
   success: boolean;
   turnoNumber?: string;
+  zoomLink?: string;
+  webZoomLink?: string;
   error?: string;
 }
 

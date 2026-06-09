@@ -25,6 +25,8 @@ const initialFormData: FormData = {
   acceptedPolicies: false,
   flowState: 'guide-shown',
   turnoNumber: null,
+  zoomLink: null,
+  webZoomLink: null,
   attemptedStepValidation: null,
 };
 
@@ -93,6 +95,9 @@ function formReducer(state: FormData, action: FormAction): FormData {
     }
     case 'SET_TURNO_NUMBER': {
       return { ...state, turnoNumber: action.turnoNumber };
+    }
+    case 'SET_ZOOM_LINKS': {
+      return { ...state, zoomLink: action.zoomLink, webZoomLink: action.webZoomLink };
     }
     case 'ATTEMPT_VALIDATION': {
       return { ...state, attemptedStepValidation: action.step };

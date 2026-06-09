@@ -44,6 +44,8 @@ export interface FormData {
   acceptedPolicies: boolean;
   flowState: FlowState;
   turnoNumber: string | null;
+  zoomLink: string | null;
+  webZoomLink: string | null;
   attemptedStepValidation: number | null;
 }
 
@@ -71,6 +73,7 @@ export type FormAction =
   | { type: 'SET_ACCEPTED_POLICIES'; accepted: boolean }
   | { type: 'SET_FLOW_STATE'; flowState: FlowState }
   | { type: 'SET_TURNO_NUMBER'; turnoNumber: string }
+  | { type: 'SET_ZOOM_LINKS'; zoomLink: string; webZoomLink: string }
   | { type: 'ATTEMPT_VALIDATION'; step: number }
   | { type: 'CLEAR_VALIDATION_ATTEMPT' }
   | { type: 'RESET' };

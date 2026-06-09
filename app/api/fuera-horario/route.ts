@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
 
+import { getCountryByName } from '@/data/countries';
 import {
   checkRateLimit,
   getClientIp,
   sanitizeInput,
-  validateCedula,
+  validateIdentification,
   validatePhone,
   validateRequired,
-} from '@/lib/api-utilities';
-import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/power-automate';
+} from '@/lib/server/api-utilities';
+import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/server/power-automate';
 
 interface FueraHorarioData {
+  requestId?: string;
   fecha: string;
   nombres: string;
   cedula: string;
@@ -46,10 +48,11 @@ export async function POST(request: Request) {
       validateRequired(data.horaContactoPreferida, 'Hora de contacto preferida') ?? '',
     ];
 
-    const cedulaError = validateCedula(data.cedula);
+    const cedulaError = validateIdentification(data.cedula);
     if (cedulaError) errors.push(cedulaError);
 
-    const phoneError = validatePhone(data.telefono);
+    const country = getCountryByName(data.pais ?? 'Ecuador');
+    const phoneError = validatePhone(data.telefono, country?.phoneDigits);
     if (phoneError) errors.push(phoneError);
 
     const validErrors = errors.filter((errorMessage) => errorMessage !== '');
@@ -58,11 +61,12 @@ export async function POST(request: Request) {
     }
 
     await callPowerAutomate(WEBHOOK_URLS.crearFueraHorario, {
-      horaContactoPreferida: sanitizeInput(data.horaContactoPreferida),
+      requestId: data.requestId,
+      HoraContacto: sanitizeInput(data.horaContactoPreferida),
       fecha: sanitizeInput(data.fecha),
       nombres: sanitizeInput(data.nombres),
       cedula: sanitizeInput(data.cedula),
-      correo: sanitizeInput(data.email),
+      email: sanitizeInput(data.email),
       pais: sanitizeInput(data.pais ?? 'Ecuador'),
       prefijo: sanitizeInput(data.prefijoTelefonico ?? '+593'),
       telefono: sanitizeInput(data.telefono),
