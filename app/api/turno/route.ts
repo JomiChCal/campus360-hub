@@ -95,7 +95,7 @@ export async function PUT(request: Request) {
       fecha: sanitizeInput(fechaHora),
       nombres: sanitizeInput(nombreCompleto),
       cedula: sanitizeInput(data.cedula),
-      correo: sanitizeInput(data.email),
+      email: sanitizeInput(data.email),
       pais: sanitizeInput(data.pais ?? 'Ecuador'),
       prefijo: sanitizeInput(data.prefijoTelefonico ?? '+593'),
       telefono: sanitizeInput(data.telefono),

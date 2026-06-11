@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       fecha: sanitizeInput(data.fecha),
       nombres: sanitizeInput(data.nombres),
       cedula: sanitizeInput(data.cedula),
-      correo: sanitizeInput(data.email),
+      email: sanitizeInput(data.email),
       telefono: sanitizeInput(data.telefono ?? ''),
       servicio: sanitizeInput(data.servicio),
       pais: sanitizeInput(data.pais ?? 'Ecuador'),
