@@ -11,7 +11,11 @@ import {
 } from '@/lib/server/api-utilities';
 import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/server/power-automate';
 import { getNextTurnoNumber } from '@/lib/server/turno-counter';
-import { generateZoomLink, generateWebZoomLink } from '@/lib/server/zoom';
+import {
+  generateAndroidZoomIntent,
+  generateMobileZoomLink,
+  generateWebZoomLink,
+} from '@/lib/server/zoom';
 
 function todayDateOnly(): string {
   const d = new Date();
@@ -106,11 +110,22 @@ export async function PUT(request: Request) {
       asesor: '',
     });
 
-    const zoomLink = generateZoomLink(turnoNumber, data.nombres, data.apellidos);
+    const zoomLink = generateMobileZoomLink(turnoNumber, data.nombres, data.apellidos);
     const webZoomLink = generateWebZoomLink(turnoNumber, data.nombres, data.apellidos);
+    const androidZoomIntent = generateAndroidZoomIntent(
+      turnoNumber,
+      data.nombres,
+      data.apellidos
+    );
 
     console.log(`Turno ${turnoNumber} asignado a ${nombreCompleto}`);
-    return NextResponse.json({ success: true, turnoNumber, zoomLink, webZoomLink });
+    return NextResponse.json({
+      success: true,
+      turnoNumber,
+      zoomLink,
+      webZoomLink,
+      androidZoomIntent,
+    });
   } catch (error) {
     console.error('Error:', String(error));
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
