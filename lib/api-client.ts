@@ -68,6 +68,7 @@ interface AssignTurnoResult {
   turnoNumber?: string;
   zoomLink?: string;
   webZoomLink?: string;
+  androidZoomIntent?: string;
   error?: string;
 }
 
@@ -139,6 +140,7 @@ export async function assignTurnoAtomic(
       turnoNumber: data.turnoNumber,
       zoomLink: data.zoomLink,
       webZoomLink: data.webZoomLink,
+      androidZoomIntent: data.androidZoomIntent,
     };
   } catch (error) {
     console.error('Error de red asignando turno:', error);

@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import { DM_Sans, Plus_Jakarta_Sans } from 'next/font/google';
+import { Suspense } from 'react';
+
+import BusinessHoursWatcher from '@/components/BusinessHoursWatcher';
+import ScheduleHydrator from '@/components/ScheduleHydrator';
 
 import './globals.css';
 
@@ -34,6 +38,10 @@ export default function RootLayout({
         className="relative flex min-h-full flex-col bg-utpl-surface"
         suppressHydrationWarning
       >
+        <ScheduleHydrator />
+        <Suspense fallback={null}>
+          <BusinessHoursWatcher />
+        </Suspense>
         {children}
       </body>
     </html>

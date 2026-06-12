@@ -1,15 +1,17 @@
+import { unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { getBusinessHoursState } from '@/lib/business-hours';
+import { getBusinessHoursStateFromStore } from '@/lib/business-hours';
+import { readScheduleStore } from '@/lib/schedule-config-store';
 
-export default function Home() {
-  const state = getBusinessHoursState();
+export const dynamic = 'force-dynamic';
 
-  if (state === 'lunch') {
-    redirect('/fuera-horario');
-  }
+export default async function Home() {
+  noStore();
+  const store = await readScheduleStore();
+  const state = getBusinessHoursStateFromStore(store);
 
-  if (state === 'after-hours') {
+  if (state === 'lunch' || state === 'after-hours') {
     redirect('/fuera-horario');
   }
 

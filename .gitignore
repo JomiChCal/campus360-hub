@@ -40,7 +40,10 @@ yarn-error.log*
 *.json
 !package.json
 !data/utpl-servicios-academicos.json
+!data/schedule-config.json
 !components.json
+!vercel.json
+!package-lock.json
 
 # vercel
 .vercel

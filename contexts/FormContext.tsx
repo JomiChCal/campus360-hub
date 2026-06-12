@@ -83,6 +83,7 @@ export function FormProvider({
               type: 'SET_ZOOM_LINKS',
               zoomLink: result.zoomLink,
               webZoomLink: result.webZoomLink,
+              androidZoomIntent: result.androidZoomIntent,
             });
           }
           wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'turno-assigned' });
@@ -109,6 +110,7 @@ export function FormProvider({
             type: 'SET_ZOOM_LINKS',
             zoomLink: result.zoomLink,
             webZoomLink: result.webZoomLink,
+            androidZoomIntent: result.androidZoomIntent,
           });
         }
         wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'turno-assigned' });

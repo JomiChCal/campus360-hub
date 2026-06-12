@@ -27,6 +27,7 @@ const initialFormData: FormData = {
   turnoNumber: null,
   zoomLink: null,
   webZoomLink: null,
+  androidZoomIntent: null,
   attemptedStepValidation: null,
 };
 
@@ -97,7 +98,12 @@ function formReducer(state: FormData, action: FormAction): FormData {
       return { ...state, turnoNumber: action.turnoNumber };
     }
     case 'SET_ZOOM_LINKS': {
-      return { ...state, zoomLink: action.zoomLink, webZoomLink: action.webZoomLink };
+      return {
+        ...state,
+        zoomLink: action.zoomLink,
+        webZoomLink: action.webZoomLink,
+        androidZoomIntent: action.androidZoomIntent ?? null,
+      };
     }
     case 'ATTEMPT_VALIDATION': {
       return { ...state, attemptedStepValidation: action.step };

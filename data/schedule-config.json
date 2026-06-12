@@ -1,0 +1,21 @@
+{
+  "horarios": {
+    "Horario Normal": {
+      "horaAperturaM": "08:00",
+      "horaCierreM": "12:00",
+      "horarioAperturaT": "15:00",
+      "horarioCierreT": "18:30",
+      "modo": "dual",
+      "recibirRespuestas": true
+    },
+    "Horario Extendido": {
+      "horaAperturaM": "08:00",
+      "horaCierreM": null,
+      "horarioAperturaT": null,
+      "horarioCierreT": "21:00",
+      "modo": "continuo",
+      "recibirRespuestas": true
+    }
+  },
+  "updatedAt": "2026-06-10T23:24:21.689Z"
+}

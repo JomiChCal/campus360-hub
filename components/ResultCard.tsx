@@ -5,6 +5,7 @@ import { CheckCircle, Clock, Lock, Ticket, Video } from 'lucide-react';
 import { useState } from 'react';
 
 import { formatTurnoForDisplay } from '@/lib/simulation';
+import { isMobileDevice, launchZoomMeeting } from '@/lib/zoom-launch';
 
 interface ResultCardProperties {
   mode: 'completed' | 'turno' | 'fuera-horario';
@@ -14,6 +15,7 @@ interface ResultCardProperties {
   horaContacto?: string;
   zoomLink?: string | null;
   webZoomLink?: string | null;
+  androidZoomIntent?: string | null;
 }
 
 const containerVariants = {
@@ -42,6 +44,7 @@ export default function ResultCard({
   horaContacto,
   zoomLink,
   webZoomLink,
+  androidZoomIntent,
 }: ResultCardProperties) {
   if (mode === 'fuera-horario') {
     return (
@@ -132,6 +135,7 @@ export default function ResultCard({
         displayNumber={displayNumber}
         zoomLink={zoomLink}
         webZoomLink={webZoomLink}
+        androidZoomIntent={androidZoomIntent ?? undefined}
       />
     );
   }
@@ -143,12 +147,15 @@ function TurnoResult({
   displayNumber,
   zoomLink,
   webZoomLink,
+  androidZoomIntent,
 }: {
   displayNumber: string;
   zoomLink: string;
   webZoomLink: string;
+  androidZoomIntent?: string;
 }) {
   const [recordingAccepted, setRecordingAccepted] = useState(false);
+  const showBrowserFallback = isMobileDevice();
 
   return (
     <motion.div
@@ -251,8 +258,15 @@ function TurnoResult({
       >
         {recordingAccepted ? (
           <>
-            <motion.a
-              href={zoomLink}
+            <motion.button
+              type="button"
+              onClick={() =>
+                launchZoomMeeting({
+                  mobileLink: zoomLink,
+                  webLink: webZoomLink,
+                  androidIntent: androidZoomIntent,
+                })
+              }
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-3 text-sm font-bold text-utpl-blue shadow-lg transition-all hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
@@ -260,18 +274,20 @@ function TurnoResult({
             >
               <Video className="h-4 w-4" />
               Unirse a Zoom
-            </motion.a>
-            <p className="mt-2 text-[10px] text-slate-400">
-              o{' '}
-              <a
-                href={webZoomLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline transition-colors hover:text-utpl-blue focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
-              >
-                abrir en navegador
-              </a>
-            </p>
+            </motion.button>
+            {showBrowserFallback ? (
+              <p className="mt-2 text-[10px] text-slate-400">
+                o{' '}
+                <a
+                  href={webZoomLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline transition-colors hover:text-utpl-blue focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+                >
+                  abrir en navegador
+                </a>
+              </p>
+            ) : null}
           </>
         ) : (
           <button

@@ -23,6 +23,7 @@ interface AssignResult {
   turnoNumber?: string;
   zoomLink?: string;
   webZoomLink?: string;
+  androidZoomIntent?: string;
   error?: string;
 }
 

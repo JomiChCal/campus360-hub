@@ -37,6 +37,7 @@ function ResultadoContent() {
           apellidos={data.apellidos}
           zoomLink={data.zoomLink}
           webZoomLink={data.webZoomLink}
+          androidZoomIntent={data.androidZoomIntent}
         />
       ) : null}
 
