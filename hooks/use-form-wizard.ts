@@ -20,6 +20,7 @@ const initialFormData: FormData = {
   telefono: '',
   selectedCategoryId: null,
   selectedServiceId: null,
+  requirementType: null,
   freeText: '',
   acceptedPrivacy: false,
   acceptedPolicies: false,
@@ -80,6 +81,9 @@ function formReducer(state: FormData, action: FormAction): FormData {
     }
     case 'SET_SELECTED_SERVICE': {
       return { ...state, selectedServiceId: action.serviceId };
+    }
+    case 'SET_REQUIREMENT_TYPE': {
+      return { ...state, requirementType: action.requirementType };
     }
     case 'SET_FREE_TEXT': {
       return { ...state, freeText: action.text };

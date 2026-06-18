@@ -4,6 +4,8 @@ export type ServiceResult = 'GUIA' | 'TURNO';
 
 export type Modalidad = 'En línea' | 'Distancia' | 'Presencial';
 
+export type RequirementType = 'queja' | 'soporte' | 'informacion' | null;
+
 export type FlowState =
   | 'guide-shown'
   | 'needs-advisor'
@@ -39,6 +41,7 @@ export interface FormData {
   telefono: string;
   selectedCategoryId: string | null;
   selectedServiceId: string | null;
+  requirementType: RequirementType;
   freeText: string;
   acceptedPrivacy: boolean;
   acceptedPolicies: boolean;
@@ -68,6 +71,7 @@ export type FormAction =
   | { type: 'SET_MODALIDAD'; modalidad: Modalidad }
   | { type: 'SET_SELECTED_CATEGORY'; categoryId: string }
   | { type: 'SET_SELECTED_SERVICE'; serviceId: string }
+  | { type: 'SET_REQUIREMENT_TYPE'; requirementType: RequirementType }
   | { type: 'SET_FREE_TEXT'; text: string }
   | { type: 'SET_ACCEPTED_PRIVACY'; accepted: boolean }
   | { type: 'SET_ACCEPTED_POLICIES'; accepted: boolean }
