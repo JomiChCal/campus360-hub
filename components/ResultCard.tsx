@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle, Clock, Lock, Mail, Ticket, Video, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { formatTurnoForDisplay } from '@/lib/simulation';
 
@@ -149,15 +149,21 @@ function TurnoResult({
   webZoomLink: string;
 }) {
   const [recordingAccepted, setRecordingAccepted] = useState(false);
+  const isMobile = useMemo(
+    () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+    [],
+  );
 
   const handleJoinZoom = useCallback(() => {
-    window.location.href = zoomLink;
-    const fallback = setTimeout(() => {
+    if (isMobile) {
       window.open(webZoomLink, '_blank');
-    }, 2000);
-    const onBlur = () => clearTimeout(fallback);
-    window.addEventListener('blur', onBlur, { once: true });
-  }, [zoomLink, webZoomLink]);
+    } else {
+      window.location.href = zoomLink;
+      const fallback = setTimeout(() => window.open(webZoomLink, '_blank'), 2000);
+      const onBlur = () => clearTimeout(fallback);
+      window.addEventListener('blur', onBlur, { once: true });
+    }
+  }, [zoomLink, webZoomLink, isMobile]);
 
   return (
     <motion.div
@@ -313,17 +319,19 @@ function TurnoResult({
               <Video className="h-4 w-4" />
               Unirse a Zoom
             </motion.button>
-            <p className="mt-2 text-[10px] text-slate-400">
-              o{' '}
-              <a
-                href={webZoomLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline transition-colors hover:text-utpl-blue focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
-              >
-                abrir en navegador
-              </a>
-            </p>
+            {!isMobile && (
+              <p className="mt-2 text-[10px] text-slate-400">
+                o{' '}
+                <a
+                  href={webZoomLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline transition-colors hover:text-utpl-blue focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+                >
+                  abrir en navegador
+                </a>
+              </p>
+            )}
           </>
         ) : (
           <button
