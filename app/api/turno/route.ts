@@ -9,8 +9,8 @@ import {
   validatePhone,
   validateRequired,
 } from '@/lib/server/api-utilities';
-import { callPowerAutomate, WEBHOOK_URLS } from '@/lib/server/power-automate';
 import { getNextTurnoNumber } from '@/lib/server/turno-counter';
+import { enqueueTurno } from '@/lib/server/turno-queue';
 import { generateZoomLink, generateWebZoomLink } from '@/lib/server/zoom';
 
 function todayDateOnly(): string {
@@ -89,7 +89,8 @@ export async function PUT(request: Request) {
     const fechaHora = getFechaHora();
     const nombreCompleto = `${data.nombres} ${data.apellidos}`;
 
-    await callPowerAutomate(WEBHOOK_URLS.crearTurno, {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? `${request.url.split('/api')[0]}`;
+    await enqueueTurno(baseUrl, {
       requestId: data.requestId,
       turno: sanitizeInput(turnoNumber),
       fecha: sanitizeInput(fechaHora),
