@@ -11,6 +11,7 @@ import {
 } from '@/lib/server/api-utilities';
 import { getNextTurnoNumber } from '@/lib/server/turno-counter';
 import { enqueueTurno } from '@/lib/server/turno-queue';
+import { WEBHOOK_URLS } from '@/lib/server/power-automate';
 import { generateZoomLink, generateWebZoomLink } from '@/lib/server/zoom';
 
 function todayDateOnly(): string {
@@ -105,7 +106,7 @@ export async function PUT(request: Request) {
       detalle: sanitizeInput(data.freeText ?? ''),
       origen: sanitizeInput(data.origen),
       asesor: '',
-    });
+    }, WEBHOOK_URLS.crearTurno);
 
     const zoomLink = generateZoomLink(turnoNumber, data.nombres, data.apellidos);
     const webZoomLink = generateWebZoomLink(turnoNumber, data.nombres, data.apellidos);
