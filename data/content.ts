@@ -18,18 +18,18 @@ export const c = {
     },
     tipo: {
       estudiante: {
-        heading: 'Estudiante',
+        heading: 'Ya soy UTPL +',
         description: 'Accede a servicios académicos y administrativos',
         button: 'Ingresar',
       },
       aspirante: {
-        heading: 'Aspirante',
+        heading: 'Quiero ser UTPL +',
         description: 'Conoce los servicios para nuevos estudiantes',
         button: 'Comenzar',
       },
       recordingNotice:
         'Al continuar, aceptas la grabación de la llamada. Más información aquí',
-      recordingNoticeUrl: 'https://www.utpl.edu.ec/proteccion-datos',
+      recordingNoticeUrl: 'https://procuraduria.utpl.edu.ec/sitios/documentos/NormativasPublicas/Reglamento%20de%20%C3%89tica%20y%20R%C3%A9gimen%20Disciplinario%20UTPL.pdf',
     },
   },
 };

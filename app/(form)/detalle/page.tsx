@@ -6,7 +6,6 @@ import { Suspense } from 'react';
 import StepFreeText from '@/components/wizard/StepFreeText';
 import StepNavigation from '@/components/wizard/StepNavigation';
 import { useFormContext } from '@/contexts/FormContext';
-import { findServiceById } from '@/data/services';
 import { buildRoute } from '@/lib/navigation-utilities';
 
 function DetalleContent() {
@@ -21,7 +20,6 @@ function DetalleContent() {
     maxSteps,
     isSubmitting,
     validateCurrentStep,
-    openGuideModal,
     submitForm,
   } = useFormContext();
 
@@ -29,15 +27,6 @@ function DetalleContent() {
     if (!validateCurrentStep()) {
       dispatch({ type: 'ATTEMPT_VALIDATION', step: 4 });
       return;
-    }
-
-    if (data.userType === 'estudiante' && data.flowState === 'guide-shown') {
-      const match = findServiceById(data.selectedServiceId ?? '');
-      if (match?.service.result === 'GUIA') {
-        openGuideModal();
-        dispatch({ type: 'ATTEMPT_VALIDATION', step: 4 });
-        return;
-      }
     }
 
     await submitForm(mode, contactTime);

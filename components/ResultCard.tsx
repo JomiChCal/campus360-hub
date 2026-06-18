@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle, Clock, Lock, Ticket, Video } from 'lucide-react';
+import { CheckCircle, Clock, Lock, Mail, Ticket, Video, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { formatTurnoForDisplay } from '@/lib/simulation';
@@ -158,6 +158,39 @@ function TurnoResult({
       animate="visible"
     >
       <motion.div
+        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="fixed top-20 right-4 z-50 max-w-xs rounded-2xl border-2 border-amber-400 bg-white p-4 shadow-xl shadow-amber-200/50"
+      >
+        <button
+          type="button"
+          onClick={() => {}}
+          className="absolute right-2 top-2 text-amber-500 hover:text-amber-700"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex items-start gap-3 pr-6">
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+          >
+            <Mail className="h-5 w-5 text-amber-500" />
+          </motion.div>
+          <div>
+            <p className="text-sm font-semibold text-utpl-blue">
+              Encuesta de satisfacción
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              Al finalizar tu atención, recibirás un correo.{' '}
+              <span className="font-bold text-amber-600">¡Completarla es muy importante!</span>
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
         className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-utpl-surface"
         variants={itemVariants}
       >
@@ -240,7 +273,16 @@ function TurnoResult({
             className="accent-utpl-blue mt-0.5 h-4 w-4 rounded border-gray-300 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
           />
           <span className="text-xs font-medium text-utpl-text">
-            Acepto el Reglamento de Ética y Régimen Disciplinario de la UTPL
+            Acepto el{' '}
+            <a
+              href="https://procuraduria.utpl.edu.ec/sitios/documentos/NormativasPublicas/Reglamento%20de%20%C3%89tica%20y%20R%C3%A9gimen%20Disciplinario%20UTPL.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-utpl-blue underline underline-offset-2 hover:text-utpl-blue-hover"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Reglamento de Ética y Régimen Disciplinario de la UTPL
+            </a>
           </span>
         </label>
       </motion.div>

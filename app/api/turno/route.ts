@@ -85,7 +85,7 @@ export async function PUT(request: Request) {
     }
 
     const today = todayDateOnly();
-    const turnoNumber = getNextTurnoNumber(today);
+    const turnoNumber = await getNextTurnoNumber(today);
     const fechaHora = getFechaHora();
     const nombreCompleto = `${data.nombres} ${data.apellidos}`;
 

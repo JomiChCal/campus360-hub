@@ -149,11 +149,10 @@ export function FormProvider({
     const match = findServiceById(wizard.data.selectedServiceId ?? '');
     closeGuideModal();
     wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'needs-advisor' });
-    await submitForm('turno');
-    onNavigate?.('/resultado');
+    onNavigate?.('/detalle');
   },
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  [wizard.data, wizard.dispatch, closeGuideModal, submitForm, onNavigate]);
+  [wizard.data, wizard.dispatch, closeGuideModal, onNavigate]);
 
   const errors = useMemo(() => wizard.getStepErrors(), [wizard.getStepErrors]);
 

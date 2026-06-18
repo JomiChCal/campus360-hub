@@ -1,16 +1,19 @@
-const counters = new Map<string, number>();
+import { Redis } from '@upstash/redis';
 
-export function getNextTurnoNumber(todayDate: string): string {
-  const current = counters.get(todayDate) ?? 0;
-  const next = current + 1;
-  counters.set(todayDate, next);
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+export async function getNextTurnoNumber(todayDate: string): Promise<string> {
+  const key = `turno:${todayDate}`;
+  const next = await redis.incr(key);
+  await redis.expire(key, 86_400);
   return String(next).padStart(3, '0');
 }
 
-export function resetCounter(todayDate?: string) {
+export async function resetCounter(todayDate?: string) {
   if (todayDate) {
-    counters.delete(todayDate);
-  } else {
-    counters.clear();
+    await redis.del(`turno:${todayDate}`);
   }
 }
