@@ -6,21 +6,14 @@ import { Suspense } from 'react';
 import StepNavigation from '@/components/wizard/StepNavigation';
 import StepServiceCatalog from '@/components/wizard/StepServiceCatalog';
 import { useFormContext } from '@/contexts/FormContext';
-import { findServiceById } from '@/data/services';
 import { buildRoute } from '@/lib/navigation-utilities';
 
 function ServicioContent() {
   const router = useRouter();
   const searchParameters = useSearchParams();
-  const { data, dispatch, maxSteps, isSubmitting, openGuideModal } = useFormContext();
+  const { maxSteps, isSubmitting } = useFormContext();
 
   const handleNext = () => {
-    const match = findServiceById(data.selectedServiceId ?? '');
-    if (match?.service.result === 'GUIA') {
-      dispatch({ type: 'SET_FLOW_STATE', flowState: 'needs-advisor' });
-      openGuideModal();
-      return;
-    }
     router.push(buildRoute('/detalle', searchParameters));
   };
 
