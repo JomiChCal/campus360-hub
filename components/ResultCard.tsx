@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle, Clock, Lock, Mail, Ticket, Video, X } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { formatTurnoForDisplay } from '@/lib/simulation';
 
@@ -150,6 +150,15 @@ function TurnoResult({
 }) {
   const [recordingAccepted, setRecordingAccepted] = useState(false);
 
+  const handleJoinZoom = useCallback(() => {
+    window.location.href = zoomLink;
+    const fallback = setTimeout(() => {
+      window.open(webZoomLink, '_blank');
+    }, 2000);
+    const onBlur = () => clearTimeout(fallback);
+    window.addEventListener('blur', onBlur, { once: true });
+  }, [zoomLink, webZoomLink]);
+
   return (
     <motion.div
       className="text-center"
@@ -293,8 +302,9 @@ function TurnoResult({
       >
         {recordingAccepted ? (
           <>
-            <motion.a
-              href={zoomLink}
+            <motion.button
+              type="button"
+              onClick={handleJoinZoom}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-3 text-sm font-bold text-utpl-blue shadow-lg transition-all hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
@@ -302,7 +312,7 @@ function TurnoResult({
             >
               <Video className="h-4 w-4" />
               Unirse a Zoom
-            </motion.a>
+            </motion.button>
             <p className="mt-2 text-[10px] text-slate-400">
               o{' '}
               <a
