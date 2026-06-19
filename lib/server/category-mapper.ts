@@ -67,7 +67,8 @@ function mapRow(record: UnknownRecord): WizardCategory | null {
     pickValue(record, ['Descripcion', 'Descripción', 'field_1', 'description']) ?? ''
   ).trim();
   const iconLabel = sanitizeInput(
-    String(pickValue(record, ['Icono', 'icono', 'field_2', 'icon']) ?? '').trim()
+    readChoiceValue(pickValue(record, ['Icono', 'icono', 'field_2', 'icon'])) ||
+      'Ayuda – información general'
   );
 
   const category: WizardCategory = {
