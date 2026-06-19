@@ -183,6 +183,13 @@ PA_CREAR_TURNO_URL=https://prod-xxx.logic.azure.com:443/...
 PA_CREAR_AUTOGESTION_URL=https://prod-xxx.logic.azure.com:443/...
 PA_CREAR_FUERA_HORARIO_URL=https://prod-xxx.logic.azure.com:443/...
 
+# Banner / avisos (SharePoint vía Power Automate)
+MICROSOFT_AVISOS_FLOW_URL=https://prod-xxx.logic.azure.com:443/...
+
+# Upstash Redis (turnos + caché de avisos)
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx
+
 # Zoom
 NEXT_PUBLIC_ZOOM_MEETING_ID=89419717339
 NEXT_PUBLIC_MOCK_BUSINESS_HOURS=open
@@ -351,6 +358,28 @@ Todas las rutas aplican **rate limiting** (30 req/min por IP) y validación.
   "pais": "Ecuador"
 }
 ```
+
+### `GET /api/avisos` — Avisos del banner en `/tipo`
+
+Devuelve mensajes activos desde SharePoint (vía Power Automate), con caché compartida en Redis.
+
+```json
+{
+  "messages": [
+    {
+      "title": "Renueva tu beca.",
+      "message": "Renueva tu beca desde el 23 de abril al 3 de mayo.",
+      "link": {
+        "label": "ingresa aquí",
+        "url": "https://becas.utpl.edu.ec/"
+      }
+    }
+  ],
+  "rotationIntervalMs": 20000
+}
+```
+
+Si no hay avisos activos o falla la integración, `messages` es un array vacío y el banner no se muestra.
 
 ### `GET /api/schedule-config` — Configuración de horarios
 

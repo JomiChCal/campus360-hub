@@ -1,11 +1,11 @@
-import { Redis } from '@upstash/redis';
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+import { getRedis } from '@/lib/server/redis-client';
 
 export async function getNextTurnoNumber(todayDate: string): Promise<string> {
+  const redis = getRedis();
+  if (!redis) {
+    throw new Error('UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required for turno assignment');
+  }
+
   const key = `turno:${todayDate}`;
   const next = await redis.incr(key);
   await redis.expire(key, 86_400);
@@ -13,7 +13,8 @@ export async function getNextTurnoNumber(todayDate: string): Promise<string> {
 }
 
 export async function resetCounter(todayDate?: string) {
-  if (todayDate) {
-    await redis.del(`turno:${todayDate}`);
-  }
+  const redis = getRedis();
+  if (!redis || !todayDate) return;
+
+  await redis.del(`turno:${todayDate}`);
 }

@@ -4,10 +4,11 @@ import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
-import AnnouncementBanner from '@/components/AnnouncementBanner';
+import AnnouncementCarousel from '@/components/AnnouncementCarousel';
 import StepUserType from '@/components/wizard/StepUserType';
 import { useFormContext } from '@/contexts/FormContext';
 import { c } from '@/data/content';
+import { useBannerAnnouncements } from '@/hooks/use-banner-announcements';
 import { buildRoute } from '@/lib/navigation-utilities';
 
 const containerVariants = {
@@ -56,6 +57,7 @@ function TipoContent() {
   const router = useRouter();
   const searchParameters = useSearchParams();
   const { setUserType } = useFormContext();
+  const { messages, rotationIntervalMs, isLoading } = useBannerAnnouncements();
 
   const handleSelectUserType = (type: 'estudiante' | 'aspirante') => {
     setUserType(type);
@@ -77,15 +79,17 @@ function TipoContent() {
         </p>
       </motion.div>
 
-      <motion.div
-        variants={itemVariants}
-        className="mb-5"
-      >
-        <AnnouncementBanner
-          title="ÚLTIMO DÍA DE MATRÍCULAS"
-          message="No te quedes sin tu lugar. Hoy es el último día."
-        />
-      </motion.div>
+      {!isLoading && messages.length > 0 && (
+        <motion.div
+          variants={itemVariants}
+          className="mb-5"
+        >
+          <AnnouncementCarousel
+            messages={messages}
+            rotationIntervalMs={rotationIntervalMs}
+          />
+        </motion.div>
+      )}
 
       <motion.div variants={itemVariants}>
         <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.15em] text-utpl-muted">
