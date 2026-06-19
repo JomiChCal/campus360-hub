@@ -19,6 +19,7 @@ const initialFormData: FormData = {
   prefijoTelefonico: '+593',
   telefono: '',
   selectedCategoryId: null,
+  selectedCategoryTitle: '',
   selectedServiceId: null,
   requirementType: null,
   freeText: '',
@@ -77,7 +78,12 @@ function formReducer(state: FormData, action: FormAction): FormData {
       return { ...state, modalidad: action.modalidad };
     }
     case 'SET_SELECTED_CATEGORY': {
-      return { ...state, selectedCategoryId: action.categoryId || null, selectedServiceId: null };
+      return {
+        ...state,
+        selectedCategoryId: action.categoryId || null,
+        selectedCategoryTitle: action.categoryTitle || '',
+        selectedServiceId: null,
+      };
     }
     case 'SET_SELECTED_SERVICE': {
       return { ...state, selectedServiceId: action.serviceId };
@@ -125,17 +131,13 @@ export function getMaxSteps(userType: UserType): number {
   return 1;
 }
 
-export function getNextStep(userType: UserType, currentStep: number): number {
-  let nextStep = currentStep + 1;
-  if (userType === 'aspirante' && nextStep === 3) nextStep = 4;
-  return nextStep;
+export function getNextStep(_userType: UserType, currentStep: number): number {
+  return currentStep + 1;
 }
 
-export function getPreviousStep(userType: UserType, currentStep: number): number {
-  let previousStep = currentStep - 1;
-  if (userType === 'aspirante' && previousStep === 3) previousStep = 2;
-  if (previousStep < 1) previousStep = 1;
-  return previousStep;
+export function getPreviousStep(_userType: UserType, currentStep: number): number {
+  const previousStep = currentStep - 1;
+  return previousStep < 1 ? 1 : previousStep;
 }
 
 export function useFormWizard() {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { GraduationCap, Ticket, User, UserPlus } from 'lucide-react';
+import { Layers, Ticket, User, UserPlus, type LucideIcon } from 'lucide-react';
 import { memo } from 'react';
 
 import { c } from '@/data/content';
@@ -7,7 +7,7 @@ import type { UserType } from '@/types/form';
 
 interface StepConfig {
   label: string;
-  Icon: typeof GraduationCap;
+  Icon: LucideIcon;
   visualStep: number;
   wizardStep: number;
 }
@@ -18,28 +18,22 @@ interface StepIndicatorProperties {
   onStepClick?: (step: number) => void;
 }
 
-function getAllSteps(userType: UserType): StepConfig[] {
+function getAllSteps(): StepConfig[] {
   return [
     { visualStep: 1, wizardStep: 1, label: c.steps.indicador.paso1, Icon: UserPlus },
     { visualStep: 2, wizardStep: 2, label: c.steps.indicador.paso2, Icon: User },
-    { visualStep: 3, wizardStep: userType === 'aspirante' ? 4 : 3, label: c.steps.indicador.turno, Icon: Ticket },
+    { visualStep: 3, wizardStep: 3, label: c.steps.indicador.categoria, Icon: Layers },
+    { visualStep: 4, wizardStep: 4, label: c.steps.indicador.turno, Icon: Ticket },
   ];
 }
 
-function wizardStepToVisual(wizardStep: number, userType: UserType): number {
-  if (userType === 'aspirante') {
-    if (wizardStep <= 2) return wizardStep;
-    return wizardStep - 1;
-  }
-  return wizardStep;
-}
-
-function StepIndicator({ currentStep, userType, onStepClick }: StepIndicatorProperties) {
-  const allSteps = getAllSteps(userType);
-  const currentVisual = wizardStepToVisual(currentStep, userType);
+function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
+  const allSteps = getAllSteps();
+  const currentVisual = currentStep;
   const completedCount = allSteps.filter((s) => s.visualStep < currentVisual).length;
   const totalVisible = allSteps.length;
-  const progressPercent = Math.max(0, (completedCount / (totalVisible - 1)) * 100);
+  const progressPercent =
+    totalVisible > 1 ? Math.max(0, (completedCount / (totalVisible - 1)) * 100) : 0;
 
   return (
     <nav

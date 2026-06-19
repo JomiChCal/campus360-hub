@@ -29,13 +29,21 @@ async function fetchBannersFromPowerAutomate(): Promise<BannerAnnouncement[]> {
   return mapSharePointBanners(raw);
 }
 
+export function refreshBannersFromPayload(raw: unknown): BannerAnnouncement[] {
+  return mapSharePointBanners(raw);
+}
+
+export async function persistBanners(messages: BannerAnnouncement[]): Promise<void> {
+  await writeBannersToKv(messages, 'refresh');
+}
+
 export async function getActiveBanners(): Promise<BannerAnnouncement[]> {
   const cached = await readBannersFromKv();
   if (cached) return cached;
 
   try {
     const messages = await fetchBannersFromPowerAutomate();
-    await writeBannersToKv(messages);
+    await writeBannersToKv(messages, 'fallback');
     return messages;
   } catch (error) {
     console.error('[banner-service] Failed to fetch banners:', error);

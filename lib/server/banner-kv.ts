@@ -1,8 +1,9 @@
+import type { CacheWriteMode } from '@/lib/server/cache-write-mode';
+import { getRedisSetOptions } from '@/lib/server/cache-write-mode';
 import { getRedis, isRedisEnabled } from '@/lib/server/redis-client';
 import type { BannerAnnouncement } from '@/types/banner';
 
 export const BANNER_KV_KEY = 'campus360:banner-avisos';
-const BANNER_TTL_SECONDS = 600;
 
 export async function readBannersFromKv(): Promise<BannerAnnouncement[] | null> {
   const redis = getRedis();
@@ -12,11 +13,14 @@ export async function readBannersFromKv(): Promise<BannerAnnouncement[] | null> 
   return data ?? null;
 }
 
-export async function writeBannersToKv(messages: BannerAnnouncement[]): Promise<void> {
+export async function writeBannersToKv(
+  messages: BannerAnnouncement[],
+  mode: CacheWriteMode = 'fallback'
+): Promise<void> {
   const redis = getRedis();
   if (!redis) return;
 
-  await redis.set(BANNER_KV_KEY, messages, { ex: BANNER_TTL_SECONDS });
+  await redis.set(BANNER_KV_KEY, messages, getRedisSetOptions(mode));
 }
 
 export function isBannerKvEnabled(): boolean {

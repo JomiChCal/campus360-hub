@@ -8,6 +8,7 @@ interface StepNavigationProperties {
   isSubmitting: boolean;
   onNext: () => void;
   onPrev: () => void;
+  hideNext?: boolean;
 }
 
 export default function StepNavigation({
@@ -16,6 +17,7 @@ export default function StepNavigation({
   isSubmitting,
   onNext,
   onPrev,
+  hideNext = false,
 }: StepNavigationProperties) {
   if (currentStep >= maxSteps) return null;
 
@@ -34,7 +36,7 @@ export default function StepNavigation({
       ) : (
         <div />
       )}
-      {currentStep !== 1 && (
+      {currentStep !== 1 && !hideNext && (
         <button
           type="button"
           onClick={onNext}

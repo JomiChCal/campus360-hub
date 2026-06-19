@@ -40,6 +40,7 @@ export interface FormData {
   prefijoTelefonico: string;
   telefono: string;
   selectedCategoryId: string | null;
+  selectedCategoryTitle: string;
   selectedServiceId: string | null;
   requirementType: RequirementType;
   freeText: string;
@@ -69,7 +70,7 @@ export type FormAction =
   | { type: 'SET_USER_TYPE'; userType: UserType }
   | { type: 'SET_FIELD'; field: keyof FormData; value: string }
   | { type: 'SET_MODALIDAD'; modalidad: Modalidad }
-  | { type: 'SET_SELECTED_CATEGORY'; categoryId: string }
+  | { type: 'SET_SELECTED_CATEGORY'; categoryId: string; categoryTitle: string }
   | { type: 'SET_SELECTED_SERVICE'; serviceId: string }
   | { type: 'SET_REQUIREMENT_TYPE'; requirementType: RequirementType }
   | { type: 'SET_FREE_TEXT'; text: string }

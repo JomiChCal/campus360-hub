@@ -34,8 +34,7 @@ function DetalleContent() {
   };
 
   const handlePrevious = () => {
-    const previousRoute = data.userType === 'aspirante' ? '/datos' : '/servicio';
-    router.push(buildRoute(previousRoute, searchParameters));
+    router.push(buildRoute('/servicio', searchParameters));
   };
 
   return (

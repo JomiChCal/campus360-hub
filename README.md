@@ -23,7 +23,7 @@ Plataforma web de atención y gestión de turnos para la **Universidad Técnica 
 
 ## Características principales
 
-- **Asistente multipaso (wizard)** con 5 etapas: tipo de usuario, datos personales, catálogo de servicios, detalle y resultado.
+- **Asistente multipaso (wizard)** con 5 etapas: tipo de usuario, datos personales, categoría de servicio, detalle y resultado.
 - **Autogestión con guías**: muchos trámites se resuelven con contenido guiado sin necesidad de asesor.
 - **Asignación de turnos** en horario laboral, con numeración diaria (`001`, `002`, …) y reintentos ante condiciones de carrera.
 - **Modo fuera de horario**: redirección automática cuando el centro está cerrado o en almuerzo; el usuario puede agendar una franja de llamada.
@@ -186,7 +186,13 @@ PA_CREAR_FUERA_HORARIO_URL=https://prod-xxx.logic.azure.com:443/...
 # Banner / avisos (SharePoint vía Power Automate)
 MICROSOFT_AVISOS_FLOW_URL=https://prod-xxx.logic.azure.com:443/...
 
-# Upstash Redis (turnos + caché de avisos)
+# Categorías del wizard (SharePoint vía Power Automate, lectura fallback)
+MICROSOFT_CATEGORIAS_FLOW_URL=https://prod-xxx.logic.azure.com:443/...
+
+# Secret compartido para POST refresh desde Power Automate (banner + categorías)
+REFRESH_SECRET=your_long_random_secret
+
+# Upstash Redis (turnos + caché de avisos y categorías)
 UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=xxx
 
@@ -380,6 +386,73 @@ Devuelve mensajes activos desde SharePoint (vía Power Automate), con caché com
 ```
 
 Si no hay avisos activos o falla la integración, `messages` es un array vacío y el banner no se muestra.
+
+### `POST /api/avisos/refresh` — Sincronizar avisos desde Power Automate
+
+Actualiza Redis al crear o modificar items en SharePoint (`Bannerconfig`). Requiere autenticación Bearer.
+
+**Headers:**
+
+```
+Content-Type: application/json
+Authorization: Bearer <REFRESH_SECRET>
+```
+
+**Body:** array JSON con el mismo shape que devuelve el flujo de lectura de SharePoint (`body('Obtener_elementos')?['value']`).
+
+**Respuesta:**
+
+```json
+{ "success": true, "count": 2 }
+```
+
+### `GET /api/categorias` — Categorías del wizard en `/servicio`
+
+Query param obligatorio: `audience=continuo` (Ya soy UTPL +) o `audience=nuevo` (Quiero ser UTPL +).
+
+```json
+{
+  "categories": [
+    {
+      "id": "matriculas-y-tramites",
+      "title": "Matrículas y trámites",
+      "description": "Renovación, inscripción y procesos administrativos",
+      "iconLabel": "Libro – matrículas y trámites",
+      "studentType": "continuo"
+    }
+  ]
+}
+```
+
+Si Redis no tiene datos, se usa `MICROSOFT_CATEGORIAS_FLOW_URL` como fallback (TTL 10 min). Si todo falla, `categories` es `[]`.
+
+### `POST /api/categorias/refresh` — Sincronizar categorías desde Power Automate
+
+Igual que avisos: Bearer `REFRESH_SECRET`, body = array de la lista SharePoint `CategoriasWizard`.
+
+**Flujo Power Automate (sync):**
+
+1. Disparador: *Cuando se crea o modifica un elemento* en `Bannerconfig` o `CategoriasWizard`.
+2. Acción: *Obtener elementos* de la misma lista.
+3. Acción HTTP POST a `https://<dominio>/api/avisos/refresh` o `/api/categorias/refresh` con los headers anteriores y body `body('Obtener_elementos')?['value']`.
+
+Los cambios son visibles en segundos tras el POST refresh y una recarga de página (GET lee Redis).
+
+**Pruebas locales:**
+
+```bash
+curl -X POST "http://localhost:3000/api/avisos/refresh" \
+  -H "Authorization: Bearer $REFRESH_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '[{"Title":"Test","field_1":"Mensaje","activar":{"Value":"Activado"}}]'
+
+curl "http://localhost:3000/api/categorias?audience=continuo"
+
+curl -X POST "http://localhost:3000/api/categorias/refresh" \
+  -H "Authorization: Bearer $REFRESH_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '[{"Title":"Pagos","Activo":{"Value":"Activado"},"TipoEstudiante":{"Value":"Continuo"},"Icono":{"Value":"Dinero – pagos y becas"}}]'
+```
 
 ### `GET /api/schedule-config` — Configuración de horarios
 
