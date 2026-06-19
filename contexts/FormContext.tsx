@@ -32,6 +32,7 @@ interface FormContextType {
   handleNeedAdvisorFromModal: () => void;
   handleContactTimeConfirm: (time: string) => void;
   closeContactTimeModal: () => void;
+  openContactTimeModal: () => void;
 }
 
 const FormContext = createContext<FormContextType | null>(null);
@@ -58,6 +59,10 @@ export function FormProvider({
 
   const closeContactTimeModal = useCallback(() => {
     setContactTimeModalOpen(false);
+  }, []);
+
+  const openContactTimeModal = useCallback(() => {
+    setContactTimeModalOpen(true);
   }, []);
 
   const submitForm = useCallback(
@@ -160,6 +165,7 @@ export function FormProvider({
       handleNeedAdvisorFromModal,
       handleContactTimeConfirm,
       closeContactTimeModal,
+      openContactTimeModal,
     }),
     [
       wizard.data,
@@ -184,6 +190,7 @@ export function FormProvider({
       handleNeedAdvisorFromModal,
       handleContactTimeConfirm,
       closeContactTimeModal,
+      openContactTimeModal,
     ]
   );
 

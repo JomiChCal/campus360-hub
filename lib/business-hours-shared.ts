@@ -1,58 +1,71 @@
-export type BusinessHoursState = 'open' | 'lunch' | 'after-hours';
+import {
+  buildBusinessHoursMessage,
+  buildContactTimeOptions,
+  canAcceptTurnosFromState,
+  getBusinessHoursStateFromResolved,
+  getEcuadorClock,
+  getLunchResumeTime,
+  isWizardAllowedState,
+  resolveActiveSchedule,
+} from '@/lib/schedule-core';
+import { getClientScheduleStore } from '@/lib/schedule-client-store';
+import type { BusinessHoursState, ContactTimeOption } from '@/types/schedule';
 
-const ECUADOR_OFFSET_MINUTES = -5 * 60;
+export type { BusinessHoursState };
 
-const MORNING_START = 8 * 60;
-const MORNING_END = 12 * 60 + 45;
-const AFTERNOON_START = 15 * 60;
-const AFTERNOON_END = 17 * 60 + 45;
-
-function getMinutesInEcuadorTime(date: Date): number {
-  const utcMinutes = date.getUTCHours() * 60 + date.getUTCMinutes();
-  return (utcMinutes + ECUADOR_OFFSET_MINUTES + 24 * 60) % (24 * 60);
-}
-
-export function getBusinessHoursState(): BusinessHoursState {
+function getMockState(): BusinessHoursState | null {
   const mockMode = process.env.NEXT_PUBLIC_MOCK_BUSINESS_HOURS;
   if (mockMode === 'open' || mockMode === 'lunch' || mockMode === 'after-hours') {
     return mockMode;
   }
-
-  const now = new Date();
-  const day = now.getUTCDay();
-
-  if (day === 0 || day === 6) {
-    return 'after-hours';
+  if (mockMode === 'closing-soon') {
+    return 'closing-soon';
   }
+  return null;
+}
 
-  const minutes = getMinutesInEcuadorTime(now);
+export function getBusinessHoursState(): BusinessHoursState {
+  const mock = getMockState();
+  if (mock) return mock;
 
-  if (minutes >= MORNING_START && minutes < MORNING_END) {
-    return 'open';
-  }
-
-  if (minutes >= MORNING_END && minutes < AFTERNOON_START) {
-    return 'lunch';
-  }
-
-  return 'after-hours';
+  const store = getClientScheduleStore();
+  const resolved = resolveActiveSchedule(store);
+  return getBusinessHoursStateFromResolved(resolved, getEcuadorClock());
 }
 
 export function canAcceptNewTurnos(): boolean {
-  return getBusinessHoursState() === 'open';
+  const mock = getMockState();
+  if (mock) return mock === 'open';
+  return canAcceptTurnosFromState(getBusinessHoursState());
+}
+
+export function isWizardRouteAllowed(): boolean {
+  const mock = getMockState();
+  if (mock === 'open' || mock === 'closing-soon') return true;
+  if (mock) return false;
+  return isWizardAllowedState(getBusinessHoursState());
 }
 
 export function getBusinessHoursMessage(): string {
-  return 'Lunes a Viernes: 08:00 - 13:00 y 15:00 - 18:00';
+  const store = getClientScheduleStore();
+  const resolved = resolveActiveSchedule(store);
+  if (!resolved.horario) return 'Horario de atención no disponible';
+  return buildBusinessHoursMessage(resolved.horario);
 }
 
-export const CONTACT_TIME_OPTIONS = [
-  { value: '08:00 - 09:00', label: '08:00 - 09:00' },
-  { value: '09:00 - 10:00', label: '09:00 - 10:00' },
-  { value: '10:00 - 11:00', label: '10:00 - 11:00' },
-  { value: '11:00 - 12:00', label: '11:00 - 12:00' },
-  { value: '12:00 - 13:00', label: '12:00 - 13:00' },
-  { value: '15:00 - 16:00', label: '15:00 - 16:00' },
-  { value: '16:00 - 17:00', label: '16:00 - 17:00' },
-  { value: '17:00 - 18:00', label: '17:00 - 18:00' },
-];
+export function getContactTimeOptions(): ContactTimeOption[] {
+  const store = getClientScheduleStore();
+  const resolved = resolveActiveSchedule(store);
+  if (!resolved.horario) return [];
+  return buildContactTimeOptions(resolved.horario);
+}
+
+export function getLunchResumeLabel(): string | null {
+  const store = getClientScheduleStore();
+  const resolved = resolveActiveSchedule(store);
+  if (!resolved.horario) return null;
+  return getLunchResumeTime(resolved.horario);
+}
+
+/** @deprecated Use getContactTimeOptions() */
+export const CONTACT_TIME_OPTIONS: ContactTimeOption[] = [];

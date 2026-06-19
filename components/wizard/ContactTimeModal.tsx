@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, ExternalLink, Moon, Sun, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { CONTACT_TIME_OPTIONS } from '@/lib/business-hours';
+import { getBusinessHoursMessage, getContactTimeOptions } from '@/lib/business-hours';
 
 interface ContactTimeModalProps {
   isOpen: boolean;
@@ -14,6 +14,8 @@ interface ContactTimeModalProps {
 
 export default function ContactTimeModal({ isOpen, onClose, onConfirm }: ContactTimeModalProps) {
   const [selected, setSelected] = useState('');
+  const contactTimeOptions = getContactTimeOptions();
+  const hoursMessage = getBusinessHoursMessage();
 
   useEffect(() => {
     if (isOpen) {
@@ -113,8 +115,7 @@ export default function ContactTimeModal({ isOpen, onClose, onConfirm }: Contact
                   <span className="mt-0.5 text-xl" role="img" aria-label="reloj">🕒</span>
                   <div className="text-sm leading-relaxed text-utpl-text">
                     <p className="font-semibold text-utpl-navy">Te recordamos nuestro horario de atención:</p>
-                    <p className="mt-1">Lunes a viernes: 08:00 a 18:00</p>
-                    <p>Sábados: 09:00 a 14:00</p>
+                    <p className="mt-1">{hoursMessage}</p>
                   </div>
                 </div>
 
@@ -142,7 +143,7 @@ export default function ContactTimeModal({ isOpen, onClose, onConfirm }: Contact
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  {CONTACT_TIME_OPTIONS.map((option) => {
+                  {contactTimeOptions.map((option) => {
                     const isMorning = Number.parseInt(option.value) < 13;
                     const isSelected = selected === option.value;
                     return (
@@ -182,7 +183,7 @@ export default function ContactTimeModal({ isOpen, onClose, onConfirm }: Contact
                   className="w-full rounded-xl bg-utpl-blue px-6 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-utpl-blue-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
                   {selected
-                    ? `Confirmar: ${CONTACT_TIME_OPTIONS.find((o) => o.value === selected)?.label}`
+                    ? `Confirmar: ${contactTimeOptions.find((o) => o.value === selected)?.label}`
                     : 'Selecciona un horario'}
                 </button>
 

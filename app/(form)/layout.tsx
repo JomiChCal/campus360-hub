@@ -4,10 +4,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect } from 'react';
 
-import AnnouncementBanner from '@/components/AnnouncementBanner';
+import BusinessHoursWatcher from '@/components/BusinessHoursWatcher';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import MobileWarningModal from '@/components/MobileWarningModal';
 import PageHeader from '@/components/PageHeader';
+import ScheduleHydrator from '@/components/ScheduleHydrator';
 import StepIndicator from '@/components/StepIndicator';
 import ContactTimeModal from '@/components/wizard/ContactTimeModal';
 import GuideModal from '@/components/wizard/GuideModal';
@@ -165,6 +166,8 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <FormProvider onNavigate={handleNavigate}>
+      <ScheduleHydrator />
+      <BusinessHoursWatcher />
       <FormShell>{children}</FormShell>
     </FormProvider>
   );

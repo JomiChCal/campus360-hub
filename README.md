@@ -189,7 +189,7 @@ MICROSOFT_AVISOS_FLOW_URL=https://prod-xxx.logic.azure.com:443/...
 # Categorías del wizard (SharePoint vía Power Automate, lectura fallback)
 MICROSOFT_CATEGORIAS_FLOW_URL=https://prod-xxx.logic.azure.com:443/...
 
-# Secret compartido para POST refresh desde Power Automate (banner + categorías)
+# Secret compartido para POST refresh (banner, categorías y horarios)
 REFRESH_SECRET=your_long_random_secret
 
 # Upstash Redis (turnos + caché de avisos y categorías)
@@ -293,15 +293,18 @@ flowchart TD
 
 ### Horario de atención
 
-Zona horaria: **America/Guayaquil (UTC-5)**.
+Zona horaria: **America/Guayaquil**. Configuración dinámica desde SharePoint (`Config-horarios`) vía `POST /api/refresh-config`.
 
 | Estado | Condición |
 |--------|-----------|
-| `open` | Lunes–viernes, 08:00–12:45 o 15:00–17:45 |
-| `lunch` | Lunes–viernes, 12:45–15:00 |
-| `after-hours` | Fines de semana o fuera de franjas |
+| `open` | Dentro de franja activa hasta **cierre − 10 min** |
+| `closing-soon` | Últimos 10 min antes del cierre PA (modal en wizard) |
+| `lunch` | Hueco entre mañana y tarde (solo Horario Normal) |
+| `after-hours` | Fines de semana, fuera de franja o ambos perfiles deshabilitados |
 
-El `middleware.ts` protege las rutas del wizard fuera de horario.
+Perfiles: **Horario Normal** (dual) y **Horario Extendido** (continuo). Si ambos están `habilitado=Si`, gana Normal.
+
+El `middleware.ts` redirige a `/fuera-horario` en `lunch` y `after-hours`. El wizard permite `open` y `closing-soon` (o `?mode=fuera-horario`).
 
 ---
 
@@ -456,7 +459,59 @@ curl -X POST "http://localhost:3000/api/categorias/refresh" \
 
 ### `GET /api/schedule-config` — Configuración de horarios
 
----
+Devuelve horarios almacenados en Redis y el estado actual (`open`, `closing-soon`, `lunch`, `after-hours`).
+
+```json
+{
+  "horarios": {
+    "Horario Normal": {
+      "horaAperturaM": "08:00",
+      "horaCierreM": "13:00",
+      "horarioAperturaT": "15:00",
+      "horarioCierreT": "18:00",
+      "modo": "dual",
+      "habilitado": true
+    }
+  },
+  "resolved": { "hasActiveSchedule": true, "titulo": "Horario Normal" },
+  "state": "open",
+  "updatedAt": "2026-06-19T12:00:00.000Z"
+}
+```
+
+### `POST /api/refresh-config` — Sincronizar horarios desde Power Automate
+
+Upsert de **una fila** por request (trigger de SharePoint `Config-horarios`).
+
+**Headers:** `Content-Type: application/json`, `Authorization: Bearer <REFRESH_SECRET>`
+
+**Body (campos del trigger):**
+
+```json
+{
+  "Titulo": "Horario Normal",
+  "HoraAperturaM": "08:00",
+  "HoraCierreM": "13:00",
+  "HorarioAperturaT": "15:00",
+  "HorarioCierreT": "18:00",
+  "habilitado": "Si"
+}
+```
+
+**Prueba local:**
+
+```bash
+curl -X POST "http://localhost:3000/api/refresh-config" \
+  -H "Authorization: Bearer $REFRESH_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"Titulo":"Horario Normal","HoraAperturaM":"08:00","HoraCierreM":"13:00","HorarioAperturaT":"15:00","HorarioCierreT":"18:00","habilitado":"Si"}'
+
+curl "http://localhost:3000/api/schedule-config"
+```
+
+**Power Automate:** actualizar Bearer de `campus360-pa-horario-2026` a `REFRESH_SECRET` (mismo que banner/categorías).
+
+En producción, quitar `NEXT_PUBLIC_MOCK_BUSINESS_HOURS=open` para que aplique el horario real.
 
 ## Pruebas y calidad de código
 
