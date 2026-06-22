@@ -53,23 +53,18 @@ export function normalizeTime(value: string | null | undefined): string | null {
 }
 
 export function getEcuadorClock(date: Date = new Date()): EcuadorClock {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Guayaquil',
-    hour: '2-digit',
-    minute: '2-digit',
-    weekday: 'short',
-    hourCycle: 'h23',
-  });
+  // Ecuador es UTC-5 fijo (no tiene horario de verano)
+  const ecuadorOffsetMs = -5 * 60 * 60 * 1000;
+  const ecuadorTimeMs = date.getTime() + ecuadorOffsetMs;
+  const ecuadorDate = new Date(ecuadorTimeMs);
 
-  const parts = formatter.formatToParts(date);
-  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? '0';
-  const hours = Number.parseInt(get('hour'), 10);
-  const minutes = Number.parseInt(get('minute'), 10);
-  const weekday = get('weekday');
+  const hours = ecuadorDate.getUTCHours();
+  const minutes = ecuadorDate.getUTCMinutes();
+  const dayOfWeek = ecuadorDate.getUTCDay();
 
   return {
     minutes: hours * 60 + minutes,
-    isWeekday: !['Sat', 'Sun'].includes(weekday),
+    isWeekday: dayOfWeek >= 1 && dayOfWeek <= 5,
   };
 }
 
