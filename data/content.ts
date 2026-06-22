@@ -13,6 +13,7 @@ export const c = {
     indicador: {
       paso1: 'Tipo de Usuario',
       paso2: 'Datos Personales',
+      categoria: 'Categoría',
       turno: 'Turno',
       ariaLabel: 'Progreso del formulario',
     },

@@ -1,9 +1,5 @@
 import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
-  turbopack: {
-    root: '/home/joech/campus360-hub',
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

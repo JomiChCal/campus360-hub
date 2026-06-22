@@ -23,7 +23,7 @@ Plataforma web de atención y gestión de turnos para la **Universidad Técnica 
 
 ## Características principales
 
-- **Asistente multipaso (wizard)** con 5 etapas: tipo de usuario, datos personales, catálogo de servicios, detalle y resultado.
+- **Asistente multipaso (wizard)** con 5 etapas: tipo de usuario, datos personales, categoría de servicio, detalle y resultado.
 - **Autogestión con guías**: muchos trámites se resuelven con contenido guiado sin necesidad de asesor.
 - **Asignación de turnos** en horario laboral, con numeración diaria (`001`, `002`, …) y reintentos ante condiciones de carrera.
 - **Modo fuera de horario**: redirección automática cuando el centro está cerrado o en almuerzo; el usuario puede agendar una franja de llamada.
@@ -183,6 +183,19 @@ PA_CREAR_TURNO_URL=https://prod-xxx.logic.azure.com:443/...
 PA_CREAR_AUTOGESTION_URL=https://prod-xxx.logic.azure.com:443/...
 PA_CREAR_FUERA_HORARIO_URL=https://prod-xxx.logic.azure.com:443/...
 
+# Banner / avisos (SharePoint vía Power Automate)
+MICROSOFT_AVISOS_FLOW_URL=https://prod-xxx.logic.azure.com:443/...
+
+# Categorías del wizard (SharePoint vía Power Automate, lectura fallback)
+MICROSOFT_CATEGORIAS_FLOW_URL=https://prod-xxx.logic.azure.com:443/...
+
+# Secret compartido para POST refresh (banner, categorías y horarios)
+REFRESH_SECRET=your_long_random_secret
+
+# Upstash Redis (turnos + caché de avisos y categorías)
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx
+
 # Zoom
 NEXT_PUBLIC_ZOOM_MEETING_ID=89419717339
 NEXT_PUBLIC_MOCK_BUSINESS_HOURS=open
@@ -280,15 +293,18 @@ flowchart TD
 
 ### Horario de atención
 
-Zona horaria: **America/Guayaquil (UTC-5)**.
+Zona horaria: **America/Guayaquil**. Configuración dinámica desde SharePoint (`Config-horarios`) vía `POST /api/refresh-config`.
 
 | Estado | Condición |
 |--------|-----------|
-| `open` | Lunes–viernes, 08:00–12:45 o 15:00–17:45 |
-| `lunch` | Lunes–viernes, 12:45–15:00 |
-| `after-hours` | Fines de semana o fuera de franjas |
+| `open` | Dentro de franja activa hasta **cierre − 10 min** |
+| `closing-soon` | Últimos 10 min antes del cierre PA (modal en wizard) |
+| `lunch` | Hueco entre mañana y tarde (solo Horario Normal) |
+| `after-hours` | Fines de semana, fuera de franja o ambos perfiles deshabilitados |
 
-El `middleware.ts` protege las rutas del wizard fuera de horario.
+Perfiles: **Horario Normal** (dual) y **Horario Extendido** (continuo). Si ambos están `habilitado=Si`, gana Normal.
+
+El `middleware.ts` redirige a `/fuera-horario` en `lunch` y `after-hours`. El wizard permite `open` y `closing-soon` (o `?mode=fuera-horario`).
 
 ---
 
@@ -352,9 +368,150 @@ Todas las rutas aplican **rate limiting** (30 req/min por IP) y validación.
 }
 ```
 
+### `GET /api/avisos` — Avisos del banner en `/tipo`
+
+Devuelve mensajes activos desde SharePoint (vía Power Automate), con caché compartida en Redis.
+
+```json
+{
+  "messages": [
+    {
+      "title": "Renueva tu beca.",
+      "message": "Renueva tu beca desde el 23 de abril al 3 de mayo.",
+      "link": {
+        "label": "ingresa aquí",
+        "url": "https://becas.utpl.edu.ec/"
+      }
+    }
+  ],
+  "rotationIntervalMs": 20000
+}
+```
+
+Si no hay avisos activos o falla la integración, `messages` es un array vacío y el banner no se muestra.
+
+### `POST /api/avisos/refresh` — Sincronizar avisos desde Power Automate
+
+Actualiza Redis al crear o modificar items en SharePoint (`Bannerconfig`). Requiere autenticación Bearer.
+
+**Headers:**
+
+```
+Content-Type: application/json
+Authorization: Bearer <REFRESH_SECRET>
+```
+
+**Body:** array JSON con el mismo shape que devuelve el flujo de lectura de SharePoint (`body('Obtener_elementos')?['value']`).
+
+**Respuesta:**
+
+```json
+{ "success": true, "count": 2 }
+```
+
+### `GET /api/categorias` — Categorías del wizard en `/servicio`
+
+Query param obligatorio: `audience=continuo` (Ya soy UTPL +) o `audience=nuevo` (Quiero ser UTPL +).
+
+```json
+{
+  "categories": [
+    {
+      "id": "matriculas-y-tramites",
+      "title": "Matrículas y trámites",
+      "description": "Renovación, inscripción y procesos administrativos",
+      "iconLabel": "Libro – matrículas y trámites",
+      "studentType": "continuo"
+    }
+  ]
+}
+```
+
+Si Redis no tiene datos, se usa `MICROSOFT_CATEGORIAS_FLOW_URL` como fallback (TTL 10 min). Si todo falla, `categories` es `[]`.
+
+### `POST /api/categorias/refresh` — Sincronizar categorías desde Power Automate
+
+Igual que avisos: Bearer `REFRESH_SECRET`, body = array de la lista SharePoint `CategoriasWizard`.
+
+**Flujo Power Automate (sync):**
+
+1. Disparador: *Cuando se crea o modifica un elemento* en `Bannerconfig` o `CategoriasWizard`.
+2. Acción: *Obtener elementos* de la misma lista.
+3. Acción HTTP POST a `https://<dominio>/api/avisos/refresh` o `/api/categorias/refresh` con los headers anteriores y body `body('Obtener_elementos')?['value']`.
+
+Los cambios son visibles en segundos tras el POST refresh y una recarga de página (GET lee Redis).
+
+**Pruebas locales:**
+
+```bash
+curl -X POST "http://localhost:3000/api/avisos/refresh" \
+  -H "Authorization: Bearer $REFRESH_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '[{"Title":"Test","field_1":"Mensaje","activar":{"Value":"Activado"}}]'
+
+curl "http://localhost:3000/api/categorias?audience=continuo"
+
+curl -X POST "http://localhost:3000/api/categorias/refresh" \
+  -H "Authorization: Bearer $REFRESH_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '[{"Title":"Pagos","Activo":{"Value":"Activado"},"TipoEstudiante":{"Value":"Continuo"},"Icono":{"Value":"Dinero – pagos y becas"}}]'
+```
+
 ### `GET /api/schedule-config` — Configuración de horarios
 
----
+Devuelve horarios almacenados en Redis y el estado actual (`open`, `closing-soon`, `lunch`, `after-hours`).
+
+```json
+{
+  "horarios": {
+    "Horario Normal": {
+      "horaAperturaM": "08:00",
+      "horaCierreM": "13:00",
+      "horarioAperturaT": "15:00",
+      "horarioCierreT": "18:00",
+      "modo": "dual",
+      "habilitado": true
+    }
+  },
+  "resolved": { "hasActiveSchedule": true, "titulo": "Horario Normal" },
+  "state": "open",
+  "updatedAt": "2026-06-19T12:00:00.000Z"
+}
+```
+
+### `POST /api/refresh-config` — Sincronizar horarios desde Power Automate
+
+Upsert de **una fila** por request (trigger de SharePoint `Config-horarios`).
+
+**Headers:** `Content-Type: application/json`, `Authorization: Bearer <REFRESH_SECRET>`
+
+**Body (campos del trigger):**
+
+```json
+{
+  "Titulo": "Horario Normal",
+  "HoraAperturaM": "08:00",
+  "HoraCierreM": "13:00",
+  "HorarioAperturaT": "15:00",
+  "HorarioCierreT": "18:00",
+  "habilitado": "Si"
+}
+```
+
+**Prueba local:**
+
+```bash
+curl -X POST "http://localhost:3000/api/refresh-config" \
+  -H "Authorization: Bearer $REFRESH_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"Titulo":"Horario Normal","HoraAperturaM":"08:00","HoraCierreM":"13:00","HorarioAperturaT":"15:00","HorarioCierreT":"18:00","habilitado":"Si"}'
+
+curl "http://localhost:3000/api/schedule-config"
+```
+
+**Power Automate:** actualizar Bearer de `campus360-pa-horario-2026` a `REFRESH_SECRET` (mismo que banner/categorías).
+
+En producción, quitar `NEXT_PUBLIC_MOCK_BUSINESS_HOURS=open` para que aplique el horario real.
 
 ## Pruebas y calidad de código
 

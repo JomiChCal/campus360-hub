@@ -9,19 +9,52 @@ import {
   Sun,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import MobileWarningModal from '@/components/MobileWarningModal';
 import Modal from '@/components/Modal';
 import PageHeader from '@/components/PageHeader';
-import { CONTACT_TIME_OPTIONS, getBusinessHoursState } from '@/lib/business-hours';
+import {
+  getBusinessHoursMessage,
+  getBusinessHoursState,
+  getContactTimeOptions,
+  getLunchResumeLabel,
+} from '@/lib/business-hours';
+import { useScheduleHydration } from '@/hooks/use-schedule-hydration';
+import { getClientScheduleStore } from '@/lib/schedule-client-store';
+import { resolveActiveSchedule } from '@/lib/schedule-core';
 
 export default function FueraHorarioPage() {
   const router = useRouter();
+  const scheduleReady = useScheduleHydration();
   const state = getBusinessHoursState();
   const isLunch = state === 'lunch';
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [selectedContactTime, setSelectedContactTime] = useState('');
+
+  const contactTimeOptions = getContactTimeOptions();
+  const hoursMessage = getBusinessHoursMessage();
+  const lunchResumeTime = getLunchResumeLabel() ?? '15:00';
+
+  const scheduleBlocks = useMemo(() => {
+    const resolved = resolveActiveSchedule(getClientScheduleStore());
+    const horario = resolved.horario;
+    if (!horario) return [];
+
+    if (horario.modo === 'continuo') {
+      return [`Lun-Vie ${horario.horaAperturaM} — ${horario.horarioCierreT}`];
+    }
+
+    return [
+      `Lun-Vie ${horario.horaAperturaM} — ${horario.horaCierreM}`,
+      `Lun-Vie ${horario.horarioAperturaT} — ${horario.horarioCierreT}`,
+    ];
+  }, [scheduleReady, state]);
+
+  const openingHour = useMemo(() => {
+    const resolved = resolveActiveSchedule(getClientScheduleStore());
+    return resolved.horario?.horaAperturaM ?? '08:00';
+  }, [scheduleReady, state]);
 
   const handleConfirm = () => {
     if (!selectedContactTime) return;
@@ -68,7 +101,9 @@ export default function FueraHorarioPage() {
                 <Moon className="h-5 w-5 text-utpl-gold" />
               )}
               <span className="text-sm font-semibold tracking-wide text-white">
-                {isLunch ? 'Pausa temporal — volvemos a las 15:00' : 'Horario finalizado'}
+                {isLunch
+                  ? `Pausa temporal — volvemos a las ${lunchResumeTime}`
+                  : 'Horario finalizado'}
               </span>
             </motion.div>
           </div>
@@ -103,7 +138,8 @@ export default function FueraHorarioPage() {
                 <p>
                   Nuestro horario de atención ha finalizado por hoy. Pero no te preocupes:{' '}
                   <span className="font-semibold text-utpl-blue">tu consulta quedó registrada</span>{' '}
-                  y será retomada por nuestro equipo el siguiente día hábil a partir de las 08:00.
+                  y será retomada por nuestro equipo el siguiente día hábil a partir de las{' '}
+                  {openingHour}.
                 </p>
                 <p className="text-sm text-utpl-muted">
                   No necesitas volver a escribirnos, te brindaremos toda la información adicional
@@ -112,16 +148,21 @@ export default function FueraHorarioPage() {
               </div>
 
               <div className="rounded-xl bg-slate-50 px-6 py-5">
+                <p className="mb-3 text-center text-sm font-semibold text-utpl-text">{hoursMessage}</p>
                 <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
-                    <Sun className="h-4 w-4 text-amber-500" />
-                    Lun-Vie 08:00 — 13:00
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-utpl-text">
-                    <Moon className="h-4 w-4 text-blue-500" />
-                    Lun-Vie 15:00 — 18:00
-                  </div>
-
+                  {scheduleBlocks.map((block, index) => (
+                    <div
+                      key={block}
+                      className="flex items-center gap-2 text-sm font-semibold text-utpl-text"
+                    >
+                      {index === 0 ? (
+                        <Sun className="h-4 w-4 text-amber-500" />
+                      ) : (
+                        <Moon className="h-4 w-4 text-blue-500" />
+                      )}
+                      {block}
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -187,7 +228,7 @@ export default function FueraHorarioPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {CONTACT_TIME_OPTIONS.map((option) => {
+            {contactTimeOptions.map((option) => {
               const isMorning = Number.parseInt(option.value) < 13;
               const isSelected = selectedContactTime === option.value;
               return (
@@ -247,7 +288,7 @@ export default function FueraHorarioPage() {
             whileTap={selectedContactTime ? { scale: 0.99 } : undefined}
           >
             {selectedContactTime
-              ? `Confirmar: ${CONTACT_TIME_OPTIONS.find((o) => o.value === selectedContactTime)?.label}`
+              ? `Confirmar: ${contactTimeOptions.find((o) => o.value === selectedContactTime)?.label}`
               : 'Selecciona un horario'}
           </motion.button>
         </div>

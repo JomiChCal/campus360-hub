@@ -18,8 +18,7 @@ function DatosContent() {
       dispatch({ type: 'ATTEMPT_VALIDATION', step: 2 });
       return;
     }
-    const nextRoute = data.userType === 'aspirante' ? '/detalle' : '/servicio';
-    router.push(buildRoute(nextRoute, searchParameters));
+    router.push(buildRoute('/servicio', searchParameters));
   };
 
   const handlePrevious = () => {

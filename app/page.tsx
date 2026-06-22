@@ -1,17 +1,14 @@
 import { redirect } from 'next/navigation';
 
-import { getBusinessHoursState } from '@/lib/business-hours';
+import { getScheduleConfigSnapshot } from '@/lib/server/schedule-service';
+import { isWizardAllowedState } from '@/lib/schedule-core';
 
-export default function Home() {
-  const state = getBusinessHoursState();
+export default async function Home() {
+  const { state } = await getScheduleConfigSnapshot();
 
-  if (state === 'lunch') {
-    redirect('/fuera-horario');
+  if (isWizardAllowedState(state)) {
+    redirect('/tipo');
   }
 
-  if (state === 'after-hours') {
-    redirect('/fuera-horario');
-  }
-
-  redirect('/tipo');
+  redirect('/fuera-horario');
 }

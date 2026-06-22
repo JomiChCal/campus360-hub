@@ -32,6 +32,7 @@ interface FormContextType {
   handleNeedAdvisorFromModal: () => void;
   handleContactTimeConfirm: (time: string) => void;
   closeContactTimeModal: () => void;
+  openContactTimeModal: () => void;
 }
 
 const FormContext = createContext<FormContextType | null>(null);
@@ -60,47 +61,28 @@ export function FormProvider({
     setContactTimeModalOpen(false);
   }, []);
 
+  const openContactTimeModal = useCallback(() => {
+    setContactTimeModalOpen(true);
+  }, []);
+
   const submitForm = useCallback(
     async (mode: ServiceMode, preSelectedContactTime: string = '') => {
       const currentlyOpen = canAcceptNewTurnos();
       const effectiveMode = mode === 'fuera-horario' || !currentlyOpen ? 'fuera-horario' : 'turno';
+      const serviceLabel =
+        wizard.data.selectedCategoryTitle.trim() || 'Consulta general';
 
       if (effectiveMode === 'fuera-horario' && !preSelectedContactTime) {
         setContactTimeModalOpen(true);
         return;
       }
 
-      if (wizard.data.userType === 'aspirante') {
-        wizard.dispatch({ type: 'SET_STEP', step: wizard.maxSteps });
-        const result = await (effectiveMode === 'fuera-horario'
-          ? assignFueraHorario(wizard.data, 'Aspirante UTPL', preSelectedContactTime, 'TURNO')
-          : assignTurno(wizard.data, 'Aspirante UTPL', 'TURNO'));
-
-        if (result.success && result.turnoNumber) {
-          wizard.dispatch({ type: 'SET_TURNO_NUMBER', turnoNumber: result.turnoNumber });
-          if (result.zoomLink && result.webZoomLink) {
-            wizard.dispatch({
-              type: 'SET_ZOOM_LINKS',
-              zoomLink: result.zoomLink,
-              webZoomLink: result.webZoomLink,
-            });
-          }
-          wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'turno-assigned' });
-        } else if (result.success) {
-          wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'fuera-horario' });
-        }
-        return;
-      }
-
-      const match = findServiceById(wizard.data.selectedServiceId ?? '');
-      if (!match) return;
-
       wizard.dispatch({ type: 'SET_STEP', step: wizard.maxSteps });
 
       const origen = wizard.data.flowState === 'guide-shown' ? 'GUIA' : 'TURNO';
       const result = await (effectiveMode === 'fuera-horario'
-        ? assignFueraHorario(wizard.data, match.category.title, preSelectedContactTime, origen)
-        : assignTurno(wizard.data, match.category.title, origen));
+        ? assignFueraHorario(wizard.data, serviceLabel, preSelectedContactTime, origen)
+        : assignTurno(wizard.data, serviceLabel, origen));
 
       if (result.success && result.turnoNumber) {
         wizard.dispatch({ type: 'SET_TURNO_NUMBER', turnoNumber: result.turnoNumber });
@@ -128,7 +110,10 @@ export function FormProvider({
   );
 
   const handleSolvedFromModal = useCallback(() => {
-    const match = findServiceById(wizard.data.selectedServiceId ?? '');
+    const serviceLabel =
+      wizard.data.selectedCategoryTitle.trim() ||
+      findServiceById(wizard.data.selectedServiceId ?? '')?.service.label ||
+      '';
     closeGuideModal();
     wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'completed' });
     logAutogestion(
@@ -136,7 +121,7 @@ export function FormProvider({
       wizard.data.apellidos,
       wizard.data.cedula,
       wizard.data.email,
-      match?.service.label ?? '',
+      serviceLabel,
       'ÉXITO',
       wizard.data.pais
     );
@@ -180,6 +165,7 @@ export function FormProvider({
       handleNeedAdvisorFromModal,
       handleContactTimeConfirm,
       closeContactTimeModal,
+      openContactTimeModal,
     }),
     [
       wizard.data,
@@ -204,6 +190,7 @@ export function FormProvider({
       handleNeedAdvisorFromModal,
       handleContactTimeConfirm,
       closeContactTimeModal,
+      openContactTimeModal,
     ]
   );
 
