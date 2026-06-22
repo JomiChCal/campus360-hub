@@ -6,6 +6,7 @@ export function formatTurnoForDisplay(turnoNumber: string): string {
 
 function getFechaHora(): string {
   return new Date().toLocaleString('es-EC', {
+    timeZone: 'America/Guayaquil',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

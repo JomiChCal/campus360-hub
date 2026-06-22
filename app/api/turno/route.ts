@@ -16,11 +16,14 @@ import { generateZoomLink, generateWebZoomLink } from '@/lib/server/zoom';
 
 function todayDateOnly(): string {
   const d = new Date();
-  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  const ecuadorOffsetMs = -5 * 60 * 60 * 1000;
+  const ecuadorDate = new Date(d.getTime() + ecuadorOffsetMs);
+  return `${String(ecuadorDate.getUTCDate()).padStart(2, '0')}/${String(ecuadorDate.getUTCMonth() + 1).padStart(2, '0')}/${ecuadorDate.getUTCFullYear()}`;
 }
 
 function getFechaHora(): string {
   return new Date().toLocaleString('es-EC', {
+    timeZone: 'America/Guayaquil',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
