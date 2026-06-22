@@ -23,6 +23,7 @@ export function useWizardCategories(userType: UserType) {
       return;
     }
 
+    setIsLoading(true);
     let cancelled = false;
 
     async function load() {
@@ -30,7 +31,10 @@ export function useWizardCategories(userType: UserType) {
         const response = await fetch(`/api/categorias?audience=${audience}`, {
           cache: 'no-store',
         });
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) setCategories([]);
+          return;
+        }
 
         const data = (await response.json()) as { categories?: WizardCategory[] };
         if (cancelled) return;
