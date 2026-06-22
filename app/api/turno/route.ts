@@ -48,6 +48,36 @@ interface AsignarTurnoData {
   prefijoTelefonico?: string;
 }
 
+async function procesarAsignacion(data: AsignarTurnoData) {
+  const today = todayDateOnly();
+  const turnoNumber = await getNextTurnoNumber(today);
+  const fechaHora = getFechaHora();
+  const nombreCompleto = `${data.nombres} ${data.apellidos}`;
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  await enqueueTurno(baseUrl, {
+    requestId: data.requestId,
+    turno: sanitizeInput(turnoNumber),
+    fecha: sanitizeInput(fechaHora),
+    nombres: sanitizeInput(nombreCompleto),
+    cedula: sanitizeInput(data.cedula),
+    email: sanitizeInput(data.email),
+    pais: sanitizeInput(data.pais ?? 'Ecuador'),
+    prefijo: sanitizeInput(data.prefijoTelefonico ?? '+593'),
+    telefono: sanitizeInput(data.telefono),
+    modalidad: sanitizeInput(data.modalidad ?? '-'),
+    servicio: sanitizeInput(data.servicio),
+    detalle: sanitizeInput(data.freeText ?? ''),
+    origen: sanitizeInput(data.origen),
+    asesor: '',
+  }, WEBHOOK_URLS.crearTurno);
+
+  const zoomLink = generateZoomLink(turnoNumber, data.nombres, data.apellidos);
+  const webZoomLink = generateWebZoomLink(turnoNumber, data.nombres, data.apellidos);
+
+  return { turnoNumber, zoomLink, webZoomLink, requestId: data.requestId };
+}
+
 export async function PUT(request: Request) {
   try {
     const clientIp = getClientIp(request);
@@ -60,12 +90,18 @@ export async function PUT(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
+    const data: AsignarTurnoData = await request.json();
+
+    if (action === 'reasignar') {
+      // Reasignar no requiere validación de campos, solo genera nuevo turno
+      const result = await procesarAsignacion(data);
+      console.log(`Turno reasignado: ${result.turnoNumber} para ${data.nombres} ${data.apellidos}`);
+      return NextResponse.json({ success: true, ...result });
+    }
 
     if (action !== 'asignar') {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-
-    const data: AsignarTurnoData = await request.json();
 
     const errors: string[] = [
       validateRequired(data.nombres, 'Nombres') ?? '',
@@ -88,34 +124,9 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: validErrors.join(', ') }, { status: 400 });
     }
 
-    const today = todayDateOnly();
-    const turnoNumber = await getNextTurnoNumber(today);
-    const fechaHora = getFechaHora();
-    const nombreCompleto = `${data.nombres} ${data.apellidos}`;
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? `${request.url.split('/api')[0]}`;
-    await enqueueTurno(baseUrl, {
-      requestId: data.requestId,
-      turno: sanitizeInput(turnoNumber),
-      fecha: sanitizeInput(fechaHora),
-      nombres: sanitizeInput(nombreCompleto),
-      cedula: sanitizeInput(data.cedula),
-      email: sanitizeInput(data.email),
-      pais: sanitizeInput(data.pais ?? 'Ecuador'),
-      prefijo: sanitizeInput(data.prefijoTelefonico ?? '+593'),
-      telefono: sanitizeInput(data.telefono),
-      modalidad: sanitizeInput(data.modalidad ?? '-'),
-      servicio: sanitizeInput(data.servicio),
-      detalle: sanitizeInput(data.freeText ?? ''),
-      origen: sanitizeInput(data.origen),
-      asesor: '',
-    }, WEBHOOK_URLS.crearTurno);
-
-    const zoomLink = generateZoomLink(turnoNumber, data.nombres, data.apellidos);
-    const webZoomLink = generateWebZoomLink(turnoNumber, data.nombres, data.apellidos);
-
-    console.log(`Turno ${turnoNumber} asignado a ${nombreCompleto}`);
-    return NextResponse.json({ success: true, turnoNumber, zoomLink, webZoomLink });
+    const result = await procesarAsignacion(data);
+    console.log(`Turno ${result.turnoNumber} asignado a ${data.nombres} ${data.apellidos}`);
+    return NextResponse.json({ success: true, ...result });
   } catch (error) {
     console.error('Error:', String(error));
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });

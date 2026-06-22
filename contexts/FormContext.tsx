@@ -93,6 +93,11 @@ export function FormProvider({
             webZoomLink: result.webZoomLink,
           });
         }
+        if (result.requestId) {
+          wizard.dispatch({ type: 'SET_TURNO_REQUEST_ID', requestId: result.requestId });
+        }
+        wizard.dispatch({ type: 'SET_TURNO_ASSIGNED_AT', assignedAt: new Date().toISOString() });
+        wizard.dispatch({ type: 'SET_TURNO_USED', used: false });
         wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'turno-assigned' });
       } else if (result.success) {
         wizard.dispatch({ type: 'SET_FLOW_STATE', flowState: 'fuera-horario' });

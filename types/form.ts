@@ -50,6 +50,9 @@ export interface FormData {
   turnoNumber: string | null;
   zoomLink: string | null;
   webZoomLink: string | null;
+  turnoAssignedAt: string | null;
+  turnoUsed: boolean;
+  turnoRequestId: string | null;
   attemptedStepValidation: number | null;
 }
 
@@ -83,6 +86,10 @@ export type FormAction =
   | { type: 'SET_FLOW_STATE'; flowState: FlowState }
   | { type: 'SET_TURNO_NUMBER'; turnoNumber: string }
   | { type: 'SET_ZOOM_LINKS'; zoomLink: string; webZoomLink: string }
+  | { type: 'SET_TURNO_ASSIGNED_AT'; assignedAt: string }
+  | { type: 'SET_TURNO_USED'; used: boolean }
+  | { type: 'SET_TURNO_REQUEST_ID'; requestId: string }
+  | { type: 'RESET_TURNO_DATA' }
   | { type: 'ATTEMPT_VALIDATION'; step: number }
   | { type: 'CLEAR_VALIDATION_ATTEMPT' }
   | { type: 'RESET' };

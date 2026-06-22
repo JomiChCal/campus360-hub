@@ -29,6 +29,9 @@ const initialFormData: FormData = {
   turnoNumber: null,
   zoomLink: null,
   webZoomLink: null,
+  turnoAssignedAt: null,
+  turnoUsed: false,
+  turnoRequestId: null,
   attemptedStepValidation: null,
 };
 
@@ -108,6 +111,26 @@ function formReducer(state: FormData, action: FormAction): FormData {
     }
     case 'SET_ZOOM_LINKS': {
       return { ...state, zoomLink: action.zoomLink, webZoomLink: action.webZoomLink };
+    }
+    case 'SET_TURNO_ASSIGNED_AT': {
+      return { ...state, turnoAssignedAt: action.assignedAt };
+    }
+    case 'SET_TURNO_USED': {
+      return { ...state, turnoUsed: action.used };
+    }
+    case 'SET_TURNO_REQUEST_ID': {
+      return { ...state, turnoRequestId: action.requestId };
+    }
+    case 'RESET_TURNO_DATA': {
+      return {
+        ...state,
+        turnoNumber: null,
+        zoomLink: null,
+        webZoomLink: null,
+        turnoAssignedAt: null,
+        turnoUsed: false,
+        turnoRequestId: null,
+      };
     }
     case 'ATTEMPT_VALIDATION': {
       return { ...state, attemptedStepValidation: action.step };

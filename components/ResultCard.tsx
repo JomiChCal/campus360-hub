@@ -1,20 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle, Clock, Lock, Mail, Ticket, Video, X } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { CheckCircle, Clock, Lock, Mail, Ticket, Video, X, AlertTriangle } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useFormContext } from '@/contexts/FormContext';
 import { formatTurnoForDisplay } from '@/lib/simulation';
 
-interface ResultCardProperties {
-  mode: 'completed' | 'turno' | 'fuera-horario';
-  turnoNumber?: string;
-  nombres?: string;
-  apellidos?: string;
-  horaContacto?: string;
-  zoomLink?: string | null;
-  webZoomLink?: string | null;
-}
+const EXPIRATION_MINUTES = 3;
+const EXPIRATION_MS = EXPIRATION_MINUTES * 60 * 1000;
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -33,6 +27,16 @@ const itemVariants = {
     transition: { duration: 0.5, ease: 'easeOut' as const },
   },
 };
+
+interface ResultCardProperties {
+  mode: 'completed' | 'turno' | 'fuera-horario';
+  turnoNumber?: string;
+  nombres?: string;
+  apellidos?: string;
+  horaContacto?: string;
+  zoomLink?: string | null;
+  webZoomLink?: string | null;
+}
 
 export default function ResultCard({
   mode,
@@ -126,14 +130,7 @@ export default function ResultCard({
 
   if (mode === 'turno' && turnoNumber && zoomLink && webZoomLink) {
     const displayNumber = formatTurnoForDisplay(turnoNumber);
-
-    return (
-      <TurnoResult
-        displayNumber={displayNumber}
-        zoomLink={zoomLink}
-        webZoomLink={webZoomLink}
-      />
-    );
+    return <TurnoResult displayNumber={displayNumber} zoomLink={zoomLink} webZoomLink={webZoomLink} />;
   }
 
   return null;
@@ -148,13 +145,123 @@ function TurnoResult({
   zoomLink: string;
   webZoomLink: string;
 }) {
+  const { data, dispatch } = useFormContext();
   const [recordingAccepted, setRecordingAccepted] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
+  const [isReassigning, setIsReassigning] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(EXPIRATION_MS);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   const isMobile = useMemo(
     () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
     [],
   );
 
+  // Calcular tiempo restante
+  useEffect(() => {
+    if (data.turnoUsed || !data.turnoAssignedAt) return;
+
+    const assignedAt = new Date(data.turnoAssignedAt).getTime();
+    const now = Date.now();
+    const elapsed = now - assignedAt;
+    const remaining = Math.max(0, EXPIRATION_MS - elapsed);
+
+    setTimeLeft(remaining);
+
+    if (remaining <= 0) {
+      handleExpiration();
+      return;
+    }
+
+    timerRef.current = setInterval(() => {
+      const elapsed2 = Date.now() - assignedAt;
+      const remaining2 = Math.max(0, EXPIRATION_MS - elapsed2);
+      setTimeLeft(remaining2);
+
+      if (remaining2 <= 0) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        handleExpiration();
+      }
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [data.turnoAssignedAt, data.turnoUsed]);
+
+  const handleExpiration = async () => {
+    if (data.turnoUsed || isExpired || isReassigning) return;
+    setIsExpired(true);
+
+    // 1. Marcar como CADUCADO en Power Automate
+    if (data.turnoRequestId && data.turnoNumber) {
+      try {
+        await fetch('/api/turno/caducar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requestId: data.turnoRequestId,
+            turno: data.turnoNumber,
+            nuevoEstado: 'CADUCADO',
+            fechaCaducidad: new Date().toISOString(),
+          }),
+        });
+      } catch (error) {
+        console.error('Error marcando turno como caducado:', error);
+      }
+    }
+
+    // 2. Reasignar nuevo turno
+    setIsReassigning(true);
+    try {
+      const response = await fetch('/api/turno?action=reasignar', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: crypto.randomUUID(),
+          nombres: data.nombres,
+          apellidos: data.apellidos,
+          cedula: data.cedula,
+          email: data.email,
+          telefono: data.telefono,
+          servicio: data.selectedCategoryTitle || 'Consulta general',
+          freeText: data.freeText,
+          modalidad: data.modalidad,
+          origen: 'TURNO',
+          pais: data.pais,
+          prefijoTelefonico: data.prefijoTelefonico,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.turnoNumber) {
+          dispatch({ type: 'SET_TURNO_NUMBER', turnoNumber: result.turnoNumber });
+          dispatch({
+            type: 'SET_ZOOM_LINKS',
+            zoomLink: result.zoomLink,
+            webZoomLink: result.webZoomLink,
+          });
+          if (result.requestId) {
+            dispatch({ type: 'SET_TURNO_REQUEST_ID', requestId: result.requestId });
+          }
+          dispatch({ type: 'SET_TURNO_ASSIGNED_AT', assignedAt: new Date().toISOString() });
+          dispatch({ type: 'SET_TURNO_USED', used: false });
+          setIsExpired(false);
+          setTimeLeft(EXPIRATION_MS);
+        }
+      }
+    } catch (error) {
+      console.error('Error reasignando turno:', error);
+    } finally {
+      setIsReassigning(false);
+    }
+  };
+
   const handleJoinZoom = useCallback(() => {
+    dispatch({ type: 'SET_TURNO_USED', used: true });
+    if (timerRef.current) clearInterval(timerRef.current);
+
     if (isMobile) {
       window.open(webZoomLink, '_blank');
     } else {
@@ -163,7 +270,13 @@ function TurnoResult({
       const onBlur = () => clearTimeout(fallback);
       window.addEventListener('blur', onBlur, { once: true });
     }
-  }, [zoomLink, webZoomLink, isMobile]);
+  }, [zoomLink, webZoomLink, isMobile, dispatch]);
+
+  const formatTime = (ms: number) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  };
 
   return (
     <motion.div
@@ -172,6 +285,7 @@ function TurnoResult({
       initial="hidden"
       animate="visible"
     >
+      {/* Banner encuesta */}
       <motion.div
         initial={{ opacity: 0, y: -20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -205,6 +319,55 @@ function TurnoResult({
         </div>
       </motion.div>
 
+      {/* Contador de caducidad */}
+      {!data.turnoUsed && !isExpired && (
+        <motion.div
+          className={`mx-auto mb-4 max-w-xs rounded-xl border-2 p-3 ${
+            timeLeft < 60000
+              ? 'border-red-300 bg-red-50'
+              : 'border-blue-200 bg-blue-50'
+          }`}
+          variants={itemVariants}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <Clock className={`h-4 w-4 ${timeLeft < 60000 ? 'text-red-500' : 'text-blue-500'}`} />
+            <p className={`text-sm font-bold ${timeLeft < 60000 ? 'text-red-600' : 'text-blue-700'}`}>
+              Tu turno expira en: {formatTime(timeLeft)}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Mensaje de turno asegurado */}
+      {data.turnoUsed && (
+        <motion.div
+          className="mx-auto mb-4 max-w-xs rounded-xl border-2 border-emerald-200 bg-emerald-50 p-3"
+          variants={itemVariants}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <CheckCircle className="h-4 w-4 text-emerald-600" />
+            <p className="text-sm font-bold text-emerald-700">
+              Turno asegurado. Puedes ingresar cuando quieras.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Mensaje de caducado + reasignando */}
+      {isExpired && isReassigning && (
+        <motion.div
+          className="mx-auto mb-4 max-w-xs rounded-xl border-2 border-amber-200 bg-amber-50 p-3"
+          variants={itemVariants}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <p className="text-sm font-bold text-amber-700">
+              Tu turno anterior caducó. Asignando nuevo turno...
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       <motion.div
         className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-utpl-surface"
         variants={itemVariants}
@@ -236,18 +399,12 @@ function TurnoResult({
 
           <div className="absolute left-0 top-0 flex -translate-x-1/2 flex-col gap-2">
             {Array.from({ length: 8 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-2 w-2 rounded-full bg-white/20"
-              />
+              <div key={index} className="h-2 w-2 rounded-full bg-white/20" />
             ))}
           </div>
           <div className="absolute right-0 top-0 flex translate-x-1/2 flex-col gap-2">
             {Array.from({ length: 8 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-2 w-2 rounded-full bg-white/20"
-              />
+              <div key={index} className="h-2 w-2 rounded-full bg-white/20" />
             ))}
           </div>
 
@@ -274,7 +431,7 @@ function TurnoResult({
       >
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-left">
           <Video className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
-            <p className="text-xs leading-relaxed text-amber-800">
+          <p className="text-xs leading-relaxed text-amber-800">
             Las asesorías podrán ser grabadas para verificar la calidad de la atención y el cumplimiento de normas éticas institucionales de los participantes.
           </p>
         </div>
@@ -310,7 +467,8 @@ function TurnoResult({
             <motion.button
               type="button"
               onClick={handleJoinZoom}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-3 text-sm font-bold text-utpl-blue shadow-lg transition-all hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
+              disabled={isExpired && isReassigning}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-3 text-sm font-bold text-utpl-blue shadow-lg transition-all hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
