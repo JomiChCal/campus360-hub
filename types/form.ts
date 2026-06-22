@@ -54,6 +54,7 @@ export interface FormData {
 }
 
 export interface ValidationErrors {
+  userType?: string;
   nombres?: string;
   apellidos?: string;
   cedula?: string;
@@ -62,6 +63,9 @@ export interface ValidationErrors {
   telefono?: string;
   acceptedPrivacy?: string;
   acceptedPolicies?: string;
+  selectedCategoryId?: string;
+  requirementType?: string;
+  freeText?: string;
 }
 
 export type FormAction =

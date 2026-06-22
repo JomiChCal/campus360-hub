@@ -66,6 +66,12 @@ function validateIdentificationClient(id: string): string | null {
 export function validateStep(data: FormData, step: number): ValidationErrors {
   const newErrors: ValidationErrors = {};
 
+  if (step === 1) {
+    if (!data.userType) {
+      newErrors.userType = 'Debes seleccionar tu tipo de usuario';
+    }
+  }
+
   if (step === 2) {
     if (!data.nombres?.trim()) newErrors.nombres = 'Ingresa tus nombres completos';
     if (!data.apellidos?.trim()) newErrors.apellidos = 'Ingresa tus apellidos completos';
@@ -85,7 +91,9 @@ export function validateStep(data: FormData, step: number): ValidationErrors {
     }
 
     const phoneDigits = (data.telefono ?? '').replaceAll(/\D/g, '');
-    if (phoneDigits.length > 0) {
+    if (!phoneDigits) {
+      newErrors.telefono = 'El teléfono es requerido';
+    } else {
       const country = getCountryByName(data.pais);
       const expectedLengths = country?.phoneDigits ?? null;
 
@@ -97,6 +105,23 @@ export function validateStep(data: FormData, step: number): ValidationErrors {
       } else if (phoneDigits.length < 7 || phoneDigits.length > 15) {
         newErrors.telefono = 'El teléfono debe tener entre 7 y 15 dígitos';
       }
+    }
+  }
+
+  if (step === 3) {
+    if (!data.selectedCategoryId) {
+      newErrors.selectedCategoryId = 'Debes seleccionar una categoría de servicio';
+    }
+  }
+
+  if (step === 4) {
+    if (data.userType === 'estudiante' && !data.requirementType) {
+      newErrors.requirementType = 'Debes seleccionar el tipo de requerimiento';
+    }
+    if (!data.freeText?.trim()) {
+      newErrors.freeText = 'Debes describir tu requerimiento';
+    } else if (data.freeText.trim().length < 15) {
+      newErrors.freeText = 'El detalle debe tener al menos 15 caracteres';
     }
   }
 

@@ -13,7 +13,7 @@ import type { WizardCategory } from '@/types/category';
 function ServicioContent() {
   const router = useRouter();
   const searchParameters = useSearchParams();
-  const { data, dispatch, maxSteps, isSubmitting } = useFormContext();
+  const { data, dispatch, maxSteps, isSubmitting, validateCurrentStep, errors } = useFormContext();
   const { categories, isLoading } = useWizardCategories(data.userType);
 
   const handlePrevious = () => {
@@ -27,10 +27,18 @@ function ServicioContent() {
         categoryId: category.id,
         categoryTitle: category.title,
       });
-      dispatch({ type: 'SET_STEP', step: 4 });
-      router.push(buildRoute('/detalle', searchParameters));
+      // Validar antes de navegar
+      setTimeout(() => {
+        const errors = validateCurrentStep();
+        if (!errors) {
+          dispatch({ type: 'ATTEMPT_VALIDATION', step: 3 });
+          return;
+        }
+        dispatch({ type: 'SET_STEP', step: 4 });
+        router.push(buildRoute('/detalle', searchParameters));
+      }, 0);
     },
-    [dispatch, router, searchParameters]
+    [dispatch, router, searchParameters, validateCurrentStep]
   );
 
   return (
@@ -39,6 +47,7 @@ function ServicioContent() {
         categories={categories}
         isLoading={isLoading}
         onCategorySelect={handleCategorySelect}
+        error={errors.selectedCategoryId}
       />
       <StepNavigation
         currentStep={3}

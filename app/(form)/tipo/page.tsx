@@ -56,12 +56,19 @@ function RecordingNotice() {
 function TipoContent() {
   const router = useRouter();
   const searchParameters = useSearchParams();
-  const { setUserType } = useFormContext();
+  const { setUserType, validateCurrentStep, dispatch, errors } = useFormContext();
   const { messages, rotationIntervalMs, isLoading } = useBannerAnnouncements();
 
   const handleSelectUserType = (type: 'estudiante' | 'aspirante') => {
     setUserType(type);
-    router.push(buildRoute('/datos', searchParameters));
+    // Validar inmediatamente después de setear
+    setTimeout(() => {
+      if (!validateCurrentStep()) {
+        dispatch({ type: 'ATTEMPT_VALIDATION', step: 1 });
+        return;
+      }
+      router.push(buildRoute('/datos', searchParameters));
+    }, 0);
   };
 
   return (
@@ -101,6 +108,15 @@ function TipoContent() {
       <motion.div variants={itemVariants}>
         <RecordingNotice />
       </motion.div>
+
+      {errors.userType && (
+        <motion.p
+          variants={itemVariants}
+          className="mt-4 text-center text-xs font-medium text-red-500"
+        >
+          {errors.userType}
+        </motion.p>
+      )}
     </motion.div>
   );
 }

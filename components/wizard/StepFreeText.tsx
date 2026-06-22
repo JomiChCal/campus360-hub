@@ -13,7 +13,7 @@ const requirementOptions: { value: RequirementType; label: string }[] = [
 ];
 
 export default function StepFreeText() {
-  const { data, dispatch } = useFormContext();
+  const { data, dispatch, errors } = useFormContext();
 
   return (
     <div>
@@ -56,15 +56,20 @@ export default function StepFreeText() {
       <label className="block">
         <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-utpl-muted">
           <MessageSquare className="h-4 w-4" />
-          Detalle de tu solicitud (opcional)
+          Detalle de tu solicitud <span className="text-red-500">*</span>
         </span>
         <textarea
           rows={5}
           value={data.freeText}
           onChange={(event) => dispatch({ type: 'SET_FREE_TEXT', text: event.target.value })}
           placeholder="Describe tu solicitud..."
-          className="w-full rounded-xl border-2 border-utpl-border bg-white px-4 py-4 text-sm text-utpl-text outline-none transition-all hover:border-utpl-blue/40 focus:border-utpl-blue focus:ring-2 focus:ring-utpl-blue/10 placeholder:text-gray-300"
+          className={`w-full rounded-xl border-2 bg-white px-4 py-4 text-sm text-utpl-text outline-none transition-all hover:border-utpl-blue/40 focus:border-utpl-blue focus:ring-2 focus:ring-utpl-blue/10 placeholder:text-gray-300 ${
+            errors.freeText ? 'border-red-300 bg-red-50/50 ring-1 ring-red-200' : 'border-utpl-border'
+          }`}
         />
+        {errors.freeText && (
+          <p className="mt-1.5 text-xs font-medium text-red-500">{errors.freeText}</p>
+        )}
       </label>
     </div>
   );

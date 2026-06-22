@@ -45,7 +45,8 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
         {allSteps.map((step, index) => {
           const isCompleted = step.visualStep < currentVisual;
           const isCurrent = step.visualStep === currentVisual;
-          const canClick = isCompleted && onStepClick;
+              // Solo permitir retroceder, nunca saltar hacia adelante
+              const canClick = isCompleted && onStepClick && step.visualStep < currentVisual;
           const isLast = index === allSteps.length - 1;
 
           return (

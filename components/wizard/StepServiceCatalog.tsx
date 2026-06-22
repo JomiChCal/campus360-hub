@@ -10,12 +10,14 @@ interface StepServiceCatalogProperties {
   categories: WizardCategory[];
   isLoading: boolean;
   onCategorySelect: (category: WizardCategory) => void;
+  error?: string;
 }
 
 export default function StepServiceCatalog({
   categories,
   isLoading,
   onCategorySelect,
+  error,
 }: StepServiceCatalogProperties) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -66,6 +68,9 @@ export default function StepServiceCatalog({
         )}
       </div>
 
+      {error && (
+        <p className="mb-4 text-center text-xs font-medium text-red-500">{error}</p>
+      )}
       {filteredCategories.length === 0 ? (
         <p className="py-8 text-center text-sm text-utpl-muted">
           {searchQuery
