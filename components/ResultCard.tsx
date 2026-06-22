@@ -199,7 +199,7 @@ function TurnoResult({
             </p>
             <p className="mt-1 text-xs leading-relaxed text-slate-600">
               Al finalizar tu atención, recibirás un correo.{' '}
-              <span className="font-bold text-amber-600">¡Completarla es muy importante!</span>
+              <span className="font-bold text-amber-600">Tu opinión nos permitirá evaluar y optimizar la calidad de nuestro servicio.</span>
             </p>
           </div>
         </div>
@@ -221,7 +221,7 @@ function TurnoResult({
         className="mt-1 text-sm text-utpl-muted"
         variants={itemVariants}
       >
-        Acude al link de Zoom en el horario de atención
+        Acude al link de Zoom en el horario de atención: 08:00 a 13:00 y de 15:00 a 18:00
       </motion.p>
 
       <div className="mx-auto mt-6 max-w-xs">
@@ -274,9 +274,8 @@ function TurnoResult({
       >
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-left">
           <Video className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
-          <p className="text-xs leading-relaxed text-amber-800">
-            Las reuniones de asesoría por Zoom podrán ser grabadas con fines de control de calidad y
-            capacitación.
+            <p className="text-xs leading-relaxed text-amber-800">
+            Las asesorías podrán ser grabadas para verificar la calidad de la atención y el cumplimiento de normas éticas institucionales de los participantes.
           </p>
         </div>
 
