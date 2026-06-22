@@ -18,6 +18,22 @@ export function createEmptyScheduleStore(): ScheduleStore {
   return { horarios: {}, updatedAt: new Date().toISOString() };
 }
 
+export function createDefaultScheduleStore(): ScheduleStore {
+  return {
+    horarios: {
+      [TITULO_HORARIO_NORMAL]: {
+        horaAperturaM: '08:00',
+        horaCierreM: '13:00',
+        horarioAperturaT: '15:00',
+        horarioCierreT: '18:00',
+        modo: 'dual',
+        habilitado: true,
+      },
+    },
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export function parseTimeToMinutes(value: string | null | undefined): number | null {
   if (!value || String(value).trim() === '') return null;
   const match = /^(\d{1,2}):(\d{2})$/.exec(String(value).trim());

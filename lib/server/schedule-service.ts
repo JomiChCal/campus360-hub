@@ -1,4 +1,5 @@
 import {
+  createDefaultScheduleStore,
   createEmptyScheduleStore,
   getBusinessHoursStateFromResolved,
   getEcuadorClock,
@@ -14,7 +15,7 @@ import type { BusinessHoursState, HorarioRow, ResolvedSchedule, ScheduleStore } 
 
 export async function getScheduleStore(): Promise<ScheduleStore> {
   const cached = await readScheduleFromKv();
-  return cached ?? createEmptyScheduleStore();
+  return cached ?? createDefaultScheduleStore();
 }
 
 export async function getResolvedSchedule(): Promise<ResolvedSchedule> {
@@ -87,6 +88,13 @@ export async function getScheduleConfigSnapshot(): Promise<{
   resolved: ResolvedSchedule;
   state: BusinessHoursState;
 }> {
+  const mockMode = process.env.NEXT_PUBLIC_MOCK_BUSINESS_HOURS;
+  if (mockMode === 'open' || mockMode === 'closing-soon') {
+    const store = createDefaultScheduleStore();
+    const resolved = resolveActiveSchedule(store);
+    return { store, resolved, state: mockMode };
+  }
+
   const store = await getScheduleStore();
   const resolved = resolveActiveSchedule(store);
   const state = getBusinessHoursStateFromResolved(resolved, getEcuadorClock());
