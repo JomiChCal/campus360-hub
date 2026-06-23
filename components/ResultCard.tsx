@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormContext } from '@/contexts/FormContext';
 import { formatTurnoForDisplay } from '@/lib/simulation';
 
-const EXPIRATION_MINUTES = 3;
+const EXPIRATION_MINUTES = 2;
 const EXPIRATION_MS = EXPIRATION_MINUTES * 60 * 1000;
 
 const containerVariants = {
@@ -332,7 +332,8 @@ function TurnoResult({
       initial="hidden"
       animate="visible"
     >
-      {/* Banner encuesta */}
+      {/* Banner encuesta - se oculta al entrar al Zoom */}
+      {!data.turnoUsed && (
       <motion.div
         initial={{ opacity: 0, y: -20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -365,6 +366,7 @@ function TurnoResult({
           </div>
         </div>
       </motion.div>
+      )}
 
       {/* Contador de caducidad */}
       {!data.turnoUsed && !isExpired && (
@@ -507,14 +509,19 @@ function TurnoResult({
           </p>
         </div>
 
-        <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors hover:border-utpl-blue/30 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2">
+        {/* Checkbox prominente - ARRIBA del botón para mejor UX móvil */}
+        <label className={`mt-3 flex cursor-pointer items-start gap-2 rounded-xl border-2 bg-white p-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 ${
+          !recordingAccepted 
+            ? 'border-utpl-blue/50 shadow-sm' 
+            : 'border-emerald-300 bg-emerald-50/30'
+        }`}>
           <input
             type="checkbox"
             checked={recordingAccepted}
             onChange={(event) => setRecordingAccepted(event.target.checked)}
-            className="accent-utpl-blue mt-0.5 h-4 w-4 rounded border-gray-300 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
+            className="accent-utpl-blue mt-0.5 h-5 w-5 rounded border-gray-300 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
           />
-          <span className="text-xs font-medium text-utpl-text">
+          <span className="text-sm font-medium text-utpl-text">
             Acepto el{' '}
             <a
               href="https://procuraduria.utpl.edu.ec/sitios/documentos/NormativasPublicas/Reglamento%20de%20%C3%89tica%20y%20R%C3%A9gimen%20Disciplinario%20UTPL.pdf"
@@ -525,8 +532,14 @@ function TurnoResult({
             >
               Reglamento de Ética y Régimen Disciplinario de la UTPL
             </a>
+            {' '}<span className="text-red-500">*</span>
           </span>
         </label>
+        {!recordingAccepted && (
+          <p className="mt-1.5 text-center text-xs font-medium text-utpl-blue">
+            Debes aceptar para desbloquear el acceso a Zoom
+          </p>
+        )}
       </motion.div>
 
       <motion.div
@@ -561,15 +574,20 @@ function TurnoResult({
             )}
           </>
         ) : (
-          <button
-            type="button"
-            disabled
-            aria-label="Acepta el reglamento para desbloquear el acceso a Zoom"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-200 px-5 py-3 text-sm font-bold text-slate-400 cursor-not-allowed"
-          >
-            <Lock className="h-4 w-4" />
-            Unirse a Zoom
-          </button>
+          <div className="space-y-2">
+            <button
+              type="button"
+              disabled
+              aria-label="Acepta el reglamento para desbloquear el acceso a Zoom"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-200 px-5 py-3 text-sm font-bold text-slate-400 cursor-not-allowed"
+            >
+              <Lock className="h-4 w-4" />
+              Unirse a Zoom
+            </button>
+            <p className="text-center text-xs text-slate-400">
+              Acepta el reglamento arriba para continuar
+            </p>
+          </div>
         )}
       </motion.div>
     </motion.div>
