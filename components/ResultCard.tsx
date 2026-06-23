@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle, Clock, Lock, Mail, Ticket, Video, X, AlertTriangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useFormContext } from '@/contexts/FormContext';
@@ -146,10 +147,11 @@ function TurnoResult({
   webZoomLink: string;
 }) {
   const { data, dispatch } = useFormContext();
+  const router = useRouter();
   const [recordingAccepted, setRecordingAccepted] = useState(false);
-  const [isExpired, setIsExpired] = useState(false);
-  const [isReassigning, setIsReassigning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(EXPIRATION_MS);
+  const [isExpired, setIsExpired] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const isMobile = useMemo(
@@ -167,11 +169,7 @@ function TurnoResult({
     const remaining = Math.max(0, EXPIRATION_MS - elapsed);
 
     setTimeLeft(remaining);
-
-    if (remaining <= 0) {
-      handleExpiration();
-      return;
-    }
+    if (remaining <= 0) setIsExpired(true);
 
     timerRef.current = setInterval(() => {
       const elapsed2 = Date.now() - assignedAt;
@@ -180,7 +178,7 @@ function TurnoResult({
 
       if (remaining2 <= 0) {
         if (timerRef.current) clearInterval(timerRef.current);
-        handleExpiration();
+        setIsExpired(true);
       }
     }, 1000);
 
@@ -189,11 +187,25 @@ function TurnoResult({
     };
   }, [data.turnoAssignedAt, data.turnoUsed]);
 
-  const handleExpiration = async () => {
-    if (data.turnoUsed || isExpired || isReassigning) return;
-    setIsExpired(true);
+  const handleJoinZoom = useCallback(() => {
+    dispatch({ type: 'SET_TURNO_USED', used: true });
+    if (timerRef.current) clearInterval(timerRef.current);
 
-    // 1. Marcar como CADUCADO en Power Automate
+    if (isMobile) {
+      window.open(webZoomLink, '_blank');
+    } else {
+      window.location.href = zoomLink;
+      const fallback = setTimeout(() => window.open(webZoomLink, '_blank'), 2000);
+      const onBlur = () => clearTimeout(fallback);
+      window.addEventListener('blur', onBlur, { once: true });
+    }
+  }, [zoomLink, webZoomLink, isMobile, dispatch]);
+
+  const handleGenerateNewTurno = async () => {
+    if (isGenerating || data.turnoAttempts >= 3) return;
+    setIsGenerating(true);
+
+    // 1. Marcar como CADUCADO en Power Automate (si hay URL configurada)
     if (data.turnoRequestId && data.turnoNumber) {
       try {
         await fetch('/api/turno/caducar', {
@@ -207,12 +219,14 @@ function TurnoResult({
           }),
         });
       } catch (error) {
-        console.error('Error marcando turno como caducado:', error);
+        console.warn('Error marcando turno como caducado:', error);
       }
     }
 
-    // 2. Reasignar nuevo turno
-    setIsReassigning(true);
+    // 2. Incrementar contador de intentos
+    dispatch({ type: 'INCREMENT_TURNO_ATTEMPTS' });
+
+    // 3. Generar nuevo turno
     try {
       const response = await fetch('/api/turno?action=reasignar', {
         method: 'PUT',
@@ -252,31 +266,64 @@ function TurnoResult({
         }
       }
     } catch (error) {
-      console.error('Error reasignando turno:', error);
+      console.error('Error generando nuevo turno:', error);
     } finally {
-      setIsReassigning(false);
+      setIsGenerating(false);
     }
   };
 
-  const handleJoinZoom = useCallback(() => {
-    dispatch({ type: 'SET_TURNO_USED', used: true });
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    if (isMobile) {
-      window.open(webZoomLink, '_blank');
-    } else {
-      window.location.href = zoomLink;
-      const fallback = setTimeout(() => window.open(webZoomLink, '_blank'), 2000);
-      const onBlur = () => clearTimeout(fallback);
-      window.addEventListener('blur', onBlur, { once: true });
-    }
-  }, [zoomLink, webZoomLink, isMobile, dispatch]);
+  const handleGoHome = () => {
+    dispatch({ type: 'RESET' });
+    window.location.href = '/';
+  };
 
   const formatTime = (ms: number) => {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
     return `${minutes}:${String(seconds).padStart(2, '0')}`;
   };
+
+  // Si superó los 3 intentos, mostrar pantalla final
+  if (data.turnoAttempts >= 3 && !data.turnoUsed) {
+    return (
+      <motion.div
+        className="text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50"
+          variants={itemVariants}
+        >
+          <AlertTriangle className="h-8 w-8 text-red-500" />
+        </motion.div>
+        <motion.h2
+          className="text-2xl font-black text-red-600 sm:text-3xl"
+          variants={itemVariants}
+        >
+          Lo sentimos
+        </motion.h2>
+        <motion.p
+          className="mt-4 text-base leading-relaxed text-utpl-muted"
+          variants={itemVariants}
+        >
+          Has perdido tu turno.
+          <br />
+          Superaste el límite de 3 intentos.
+        </motion.p>
+        <motion.div className="mx-auto mt-8 max-w-xs" variants={itemVariants}>
+          <button
+            type="button"
+            onClick={handleGoHome}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-utpl-blue px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-utpl-blue-hover active:scale-[0.98]"
+          >
+            Volver al inicio
+          </button>
+        </motion.div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -353,18 +400,42 @@ function TurnoResult({
         </motion.div>
       )}
 
-      {/* Mensaje de caducado + reasignando */}
-      {isExpired && isReassigning && (
+      {/* Mensaje de caducado + botón generar nuevo */}
+      {isExpired && !data.turnoUsed && (
         <motion.div
-          className="mx-auto mb-4 max-w-xs rounded-xl border-2 border-amber-200 bg-amber-50 p-3"
+          className="mx-auto mb-6 max-w-sm space-y-4"
           variants={itemVariants}
         >
-          <div className="flex items-center justify-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <p className="text-sm font-bold text-amber-700">
-              Tu turno anterior caducó. Asignando nuevo turno...
+          <div className="rounded-xl border-2 border-red-200 bg-red-50 p-4">
+            <div className="flex items-center justify-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <p className="text-sm font-bold text-red-700">
+                Tu turno #{data.turnoNumber} ha caducado por inactividad.
+              </p>
+            </div>
+            <p className="mt-2 text-xs text-red-600">
+              Intento {data.turnoAttempts + 1} de 3
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={handleGenerateNewTurno}
+            disabled={isGenerating || data.turnoAttempts >= 3}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-utpl-blue px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-utpl-blue-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isGenerating ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Generando turno...
+              </>
+            ) : (
+              <>
+                <Ticket className="h-4 w-4" />
+                Generar nuevo turno
+              </>
+            )}
+          </button>
         </motion.div>
       )}
 
@@ -467,8 +538,7 @@ function TurnoResult({
             <motion.button
               type="button"
               onClick={handleJoinZoom}
-              disabled={isExpired && isReassigning}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-3 text-sm font-bold text-utpl-blue shadow-lg transition-all hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-3 text-sm font-bold text-utpl-blue shadow-lg transition-all hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

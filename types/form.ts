@@ -53,6 +53,7 @@ export interface FormData {
   turnoAssignedAt: string | null;
   turnoUsed: boolean;
   turnoRequestId: string | null;
+  turnoAttempts: number;
   attemptedStepValidation: number | null;
 }
 
@@ -90,6 +91,7 @@ export type FormAction =
   | { type: 'SET_TURNO_USED'; used: boolean }
   | { type: 'SET_TURNO_REQUEST_ID'; requestId: string }
   | { type: 'RESET_TURNO_DATA' }
+  | { type: 'INCREMENT_TURNO_ATTEMPTS' }
   | { type: 'ATTEMPT_VALIDATION'; step: number }
   | { type: 'CLEAR_VALIDATION_ATTEMPT' }
   | { type: 'RESET' };

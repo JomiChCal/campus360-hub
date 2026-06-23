@@ -32,6 +32,7 @@ const initialFormData: FormData = {
   turnoAssignedAt: null,
   turnoUsed: false,
   turnoRequestId: null,
+  turnoAttempts: 0,
   attemptedStepValidation: null,
 };
 
@@ -131,6 +132,9 @@ function formReducer(state: FormData, action: FormAction): FormData {
         turnoUsed: false,
         turnoRequestId: null,
       };
+    }
+    case 'INCREMENT_TURNO_ATTEMPTS': {
+      return { ...state, turnoAttempts: state.turnoAttempts + 1 };
     }
     case 'ATTEMPT_VALIDATION': {
       return { ...state, attemptedStepValidation: action.step };
