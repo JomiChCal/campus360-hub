@@ -14,9 +14,10 @@ export async function GET(request: Request) {
   }
 
   try {
+    const clock = getEcuadorClock();
     const store = await getScheduleStore();
-    const resolved = await getResolvedSchedule();
-    const state = getBusinessHoursStateFromResolved(resolved, getEcuadorClock());
+    const resolved = await getResolvedSchedule(clock);
+    const state = getBusinessHoursStateFromResolved(resolved, clock);
 
     return NextResponse.json(
       {

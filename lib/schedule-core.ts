@@ -68,33 +68,38 @@ export function getEcuadorClock(date: Date = new Date()): EcuadorClock {
   };
 }
 
-export function resolveActiveSchedule(store: ScheduleStore): ResolvedSchedule {
+function buildResolvedSchedule(titulo: string, horario: HorarioRow): ResolvedSchedule {
+  return {
+    hasActiveSchedule: true,
+    titulo,
+    horario,
+    modo: horario.modo,
+    weekdayOnly: titulo === TITULO_HORARIO_NORMAL,
+  };
+}
+
+export function resolveActiveSchedule(
+  store: ScheduleStore,
+  clock: EcuadorClock = getEcuadorClock()
+): ResolvedSchedule {
   const normal = store.horarios[TITULO_HORARIO_NORMAL];
   const extendido = store.horarios[TITULO_HORARIO_EXTENDIDO];
 
   const normalOn = normal?.habilitado === true;
   const extendidoOn = extendido?.habilitado === true;
 
-  if (!normalOn && !extendidoOn) {
+  if (clock.isWeekday) {
+    if (normalOn && normal) {
+      return buildResolvedSchedule(TITULO_HORARIO_NORMAL, normal);
+    }
+    if (extendidoOn && extendido) {
+      return buildResolvedSchedule(TITULO_HORARIO_EXTENDIDO, extendido);
+    }
     return { hasActiveSchedule: false };
   }
 
-  if (normalOn && normal) {
-    return {
-      hasActiveSchedule: true,
-      titulo: TITULO_HORARIO_NORMAL,
-      horario: normal,
-      modo: normal.modo,
-    };
-  }
-
   if (extendidoOn && extendido) {
-    return {
-      hasActiveSchedule: true,
-      titulo: TITULO_HORARIO_EXTENDIDO,
-      horario: extendido,
-      modo: extendido.modo,
-    };
+    return buildResolvedSchedule(TITULO_HORARIO_EXTENDIDO, extendido);
   }
 
   return { hasActiveSchedule: false };
@@ -146,8 +151,12 @@ function evaluateDual(horario: HorarioRow, clock: EcuadorClock): BusinessHoursSt
   return 'after-hours';
 }
 
-export function evaluateBusinessHours(horario: HorarioRow, clock: EcuadorClock): BusinessHoursState {
-  if (!clock.isWeekday) return 'after-hours';
+export function evaluateBusinessHours(
+  horario: HorarioRow,
+  clock: EcuadorClock,
+  options: { weekdayOnly?: boolean } = {}
+): BusinessHoursState {
+  if (options.weekdayOnly && !clock.isWeekday) return 'after-hours';
   if (horario.modo === 'continuo') return evaluateContinuo(horario, clock);
   return evaluateDual(horario, clock);
 }
@@ -159,7 +168,9 @@ export function getBusinessHoursStateFromResolved(
   if (!resolved.hasActiveSchedule || !resolved.horario) {
     return 'after-hours';
   }
-  return evaluateBusinessHours(resolved.horario, clock);
+  return evaluateBusinessHours(resolved.horario, clock, {
+    weekdayOnly: resolved.weekdayOnly ?? resolved.titulo === TITULO_HORARIO_NORMAL,
+  });
 }
 
 export function canAcceptTurnosFromState(state: BusinessHoursState): boolean {
@@ -201,6 +212,39 @@ export function buildContactTimeOptions(horario: HorarioRow): ContactTimeOption[
   }
 
   return options;
+}
+
+function formatHorarioBlocks(horario: HorarioRow, dayLabel: string): string[] {
+  if (horario.modo === 'continuo') {
+    return [`${dayLabel} ${horario.horaAperturaM} — ${horario.horarioCierreT}`];
+  }
+
+  return [
+    `${dayLabel} ${horario.horaAperturaM} — ${horario.horaCierreM}`,
+    `${dayLabel} ${horario.horarioAperturaT} — ${horario.horarioCierreT}`,
+  ];
+}
+
+export function buildScheduleSummary(store: ScheduleStore): string[] {
+  const lines: string[] = [];
+  const normal = store.horarios[TITULO_HORARIO_NORMAL];
+  const extendido = store.horarios[TITULO_HORARIO_EXTENDIDO];
+
+  if (normal?.habilitado === true) {
+    lines.push(...formatHorarioBlocks(normal, 'Lun-Vie'));
+  }
+
+  if (extendido?.habilitado === true) {
+    lines.push(...formatHorarioBlocks(extendido, 'Sáb-Dom'));
+  }
+
+  return lines;
+}
+
+export function buildScheduleSummaryMessage(store: ScheduleStore): string {
+  const lines = buildScheduleSummary(store);
+  if (lines.length === 0) return 'Horario de atención no disponible';
+  return lines.join(' | ');
 }
 
 export function buildBusinessHoursMessage(horario: HorarioRow): string {

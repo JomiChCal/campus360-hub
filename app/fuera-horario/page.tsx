@@ -22,7 +22,7 @@ import {
 } from '@/lib/business-hours';
 import { useScheduleHydration } from '@/hooks/use-schedule-hydration';
 import { getClientScheduleStore } from '@/lib/schedule-client-store';
-import { resolveActiveSchedule } from '@/lib/schedule-core';
+import { buildScheduleSummary, getEcuadorClock, resolveActiveSchedule } from '@/lib/schedule-core';
 
 export default function FueraHorarioPage() {
   const router = useRouter();
@@ -37,22 +37,13 @@ export default function FueraHorarioPage() {
   const lunchResumeTime = getLunchResumeLabel() ?? '15:00';
 
   const scheduleBlocks = useMemo(() => {
-    const resolved = resolveActiveSchedule(getClientScheduleStore());
-    const horario = resolved.horario;
-    if (!horario) return [];
-
-    if (horario.modo === 'continuo') {
-      return [`Lun-Vie ${horario.horaAperturaM} — ${horario.horarioCierreT}`];
-    }
-
-    return [
-      `Lun-Vie ${horario.horaAperturaM} — ${horario.horaCierreM}`,
-      `Lun-Vie ${horario.horarioAperturaT} — ${horario.horarioCierreT}`,
-    ];
+    return buildScheduleSummary(getClientScheduleStore());
   }, [scheduleReady, state]);
 
   const openingHour = useMemo(() => {
-    const resolved = resolveActiveSchedule(getClientScheduleStore());
+    const clock = getEcuadorClock();
+    const store = getClientScheduleStore();
+    const resolved = resolveActiveSchedule(store, clock);
     return resolved.horario?.horaAperturaM ?? '08:00';
   }, [scheduleReady, state]);
 

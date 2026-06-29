@@ -28,7 +28,7 @@ Plataforma web de atención y gestión de turnos para la **Universidad Técnica 
 - **Asignación de turnos** en horario laboral, con numeración diaria (`001`, `002`, …) y reintentos ante condiciones de carrera.
 - **Modo fuera de horario**: redirección automática cuando el centro está cerrado o en almuerzo; el usuario puede agendar una franja de llamada.
 - **Integración con Zoom**: enlaces personalizados por turno para atención virtual.
-- **Horario de atención Ecuador** (`America/Guayaquil`): lunes a viernes, mañana y tarde, con bloqueo de almuerzo.
+- **Horario de atención Ecuador** (`America/Guayaquil`): Horario Normal lun–vie; Horario Extendido puede cubrir lun–dom cuando está habilitado.
 - **Rate limiting** en APIs (30 peticiones/minuto por IP) y sanitización de inputs.
 - **Diseño institucional UTPL** con Tailwind CSS, animaciones Framer Motion y advertencia en dispositivos móviles.
 
@@ -299,10 +299,15 @@ Zona horaria: **America/Guayaquil**. Configuración dinámica desde SharePoint (
 |--------|-----------|
 | `open` | Dentro de franja activa hasta **cierre − 10 min** |
 | `closing-soon` | Últimos 10 min antes del cierre PA (modal en wizard) |
-| `lunch` | Hueco entre mañana y tarde (solo Horario Normal) |
-| `after-hours` | Fines de semana, fuera de franja o ambos perfiles deshabilitados |
+| `lunch` | Hueco entre mañana y tarde (solo Horario Normal dual) |
+| `after-hours` | Fuera de franja, fin de semana sin Extendido habilitado, o ambos perfiles deshabilitados |
 
-Perfiles: **Horario Normal** (dual) y **Horario Extendido** (continuo). Si ambos están `habilitado=Si`, gana Normal.
+Perfiles:
+
+- **Horario Normal** (dual): solo **lunes a viernes**. Si ambos perfiles están `habilitado=Si`, gana Normal entre semana.
+- **Horario Extendido** (continuo o dual): puede operar **lunes a domingo** cuando `habilitado=Si`. En **sábado y domingo** solo aplica Extendido; Normal no se evalúa en fin de semana.
+
+Para abrir solo fines de semana: habilitar Extendido y mantener Normal activo entre semana. Para un periodo extendido de toda la semana: habilitar Extendido y deshabilitar Normal en Power Apps.
 
 El `middleware.ts` redirige a `/fuera-horario` en `lunch` y `after-hours`. El wizard permite `open` y `closing-soon` (o `?mode=fuera-horario`).
 
