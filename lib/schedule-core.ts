@@ -36,10 +36,10 @@ export function createDefaultScheduleStore(): ScheduleStore {
     horarios: {
       [TITULO_HORARIO_NORMAL]: {
         horaAperturaM: '08:00',
-        horaCierreM: '13:00',
-        horarioAperturaT: '15:00',
+        horaCierreM: null,
+        horarioAperturaT: null,
         horarioCierreT: '18:00',
-        modo: 'dual',
+        modo: 'continuo',
         habilitado: true,
       },
     },
