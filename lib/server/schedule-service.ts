@@ -3,6 +3,7 @@ import {
   createEmptyScheduleStore,
   getBusinessHoursStateFromResolved,
   getEcuadorClock,
+  getMockState,
   resolveActiveSchedule,
   buildBusinessHoursMessage,
   buildContactTimeOptions,
@@ -88,11 +89,11 @@ export async function getScheduleConfigSnapshot(): Promise<{
   resolved: ResolvedSchedule;
   state: BusinessHoursState;
 }> {
-  const mockMode = process.env.NEXT_PUBLIC_MOCK_BUSINESS_HOURS;
-  if (mockMode === 'open' || mockMode === 'closing-soon') {
+  const mock = getMockState();
+  if (mock) {
     const store = createDefaultScheduleStore();
     const resolved = resolveActiveSchedule(store);
-    return { store, resolved, state: mockMode };
+    return { store, resolved, state: mock };
   }
 
   const store = await getScheduleStore();

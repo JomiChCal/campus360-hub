@@ -5,6 +5,7 @@ import {
   getBusinessHoursStateFromResolved,
   getEcuadorClock,
   getLunchResumeTime,
+  getMockState,
   isWizardAllowedState,
   resolveActiveSchedule,
 } from '@/lib/schedule-core';
@@ -12,17 +13,6 @@ import { getClientScheduleStore } from '@/lib/schedule-client-store';
 import type { BusinessHoursState, ContactTimeOption } from '@/types/schedule';
 
 export type { BusinessHoursState };
-
-function getMockState(): BusinessHoursState | null {
-  const mockMode = process.env.NEXT_PUBLIC_MOCK_BUSINESS_HOURS;
-  if (mockMode === 'open' || mockMode === 'lunch' || mockMode === 'after-hours') {
-    return mockMode;
-  }
-  if (mockMode === 'closing-soon') {
-    return 'closing-soon';
-  }
-  return null;
-}
 
 export function getBusinessHoursState(): BusinessHoursState {
   const mock = getMockState();
