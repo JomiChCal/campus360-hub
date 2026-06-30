@@ -1,18 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { isWizardAllowedState } from '@/lib/schedule-core';
+import { getMockState, isWizardAllowedState } from '@/lib/schedule-core';
 import type { BusinessHoursState } from '@/types/schedule';
-
-function getMockState(): BusinessHoursState | null {
-  const mockMode = process.env.NEXT_PUBLIC_MOCK_BUSINESS_HOURS;
-  if (mockMode === 'open' || mockMode === 'lunch' || mockMode === 'after-hours') {
-    return mockMode;
-  }
-  if (mockMode === 'closing-soon') {
-    return 'closing-soon';
-  }
-  return null;
-}
 
 function redirectNoStore(url: URL): NextResponse {
   const response = NextResponse.redirect(url);
@@ -48,7 +37,7 @@ function canEnterWizard(state: BusinessHoursState): boolean {
 
 const FORM_ROUTES = ['/tipo', '/datos', '/servicio', '/detalle', '/resultado'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const state = await fetchScheduleState(request);
 

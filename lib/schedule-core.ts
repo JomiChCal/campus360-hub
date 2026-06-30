@@ -14,6 +14,19 @@ export type EcuadorClock = {
   isWeekday: boolean;
 };
 
+export function getMockState(): BusinessHoursState | null {
+  const mockMode = process.env.NEXT_PUBLIC_MOCK_BUSINESS_HOURS;
+  if (
+    mockMode === 'open' ||
+    mockMode === 'lunch' ||
+    mockMode === 'after-hours' ||
+    mockMode === 'closing-soon'
+  ) {
+    return mockMode;
+  }
+  return null;
+}
+
 export function createEmptyScheduleStore(): ScheduleStore {
   return { horarios: {}, updatedAt: new Date().toISOString() };
 }
