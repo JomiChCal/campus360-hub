@@ -12,12 +12,11 @@ import {
   type EcuadorClock,
 } from '@/lib/schedule-core';
 import { mapSharePointSchedulePayload } from '@/lib/server/schedule-mapper';
-import { readScheduleFromKv, writeScheduleToKv } from '@/lib/server/schedule-kv';
+import { writeScheduleToKv } from '@/lib/server/schedule-kv';
 import type { BusinessHoursState, HorarioRow, ResolvedSchedule, ScheduleStore } from '@/types/schedule';
 
 export async function getScheduleStore(): Promise<ScheduleStore> {
-  const cached = await readScheduleFromKv();
-  return cached ?? createDefaultScheduleStore();
+  return createDefaultScheduleStore();
 }
 
 export async function getResolvedSchedule(clock: EcuadorClock = getEcuadorClock()): Promise<ResolvedSchedule> {
@@ -97,6 +96,7 @@ export async function getScheduleConfigSnapshot(): Promise<{
     const store = createDefaultScheduleStore();
     const clock = getEcuadorClock();
     const resolved = resolveActiveSchedule(store, clock);
+    const resolved = resolveActiveSchedule(store);
     return { store, resolved, state: mock };
   }
 
