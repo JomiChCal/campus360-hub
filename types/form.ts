@@ -2,7 +2,7 @@ export type UserType = 'estudiante' | 'aspirante' | null;
 
 export type ServiceResult = 'GUIA' | 'TURNO';
 
-export type Modalidad = 'En línea' | 'Distancia' | 'Presencial';
+export type Modalidad = 'Distancia y En línea' | 'Presencial';
 
 export type RequirementType = 'queja' | 'soporte' | 'informacion' | null;
 

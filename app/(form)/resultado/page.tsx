@@ -56,7 +56,7 @@ function ResultadoContent() {
 
       <div className="pt-6 text-center">
         <a
-          href="https://www.utpl.edu.ec"
+          href="https://www.utpl.edu.ec/contacto"
           className="inline-flex items-center gap-2 text-sm font-semibold text-utpl-blue transition-colors hover:text-utpl-blue-hover focus-visible:underline focus-visible:outline-none"
         >
           <ArrowLeft className="h-4 w-4" />

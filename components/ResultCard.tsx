@@ -1,11 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle, Clock, Lock, Mail, Ticket, Video, X, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Clock, Mail, Ticket, Video, X, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useFormContext } from '@/contexts/FormContext';
+import { c } from '@/data/content';
 import { formatTurnoForDisplay } from '@/lib/simulation';
 
 const EXPIRATION_MINUTES = 2;
@@ -148,7 +149,6 @@ function TurnoResult({
 }) {
   const { data, dispatch } = useFormContext();
   const router = useRouter();
-  const [recordingAccepted, setRecordingAccepted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(EXPIRATION_MS);
   const [isExpired, setIsExpired] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -456,12 +456,6 @@ function TurnoResult({
           >
             Turno asignado
           </motion.h2>
-          <motion.p
-            className="mt-1 text-sm text-utpl-muted"
-            variants={itemVariants}
-          >
-            Acude al link de Zoom en el horario de atención: 08:00 a 13:00 y de 15:00 a 18:00
-          </motion.p>
 
           <div className="mx-auto mt-6 max-w-xs">
             <motion.div
@@ -507,90 +501,53 @@ function TurnoResult({
           >
             <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-left">
               <Video className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
-              <p className="text-xs leading-relaxed text-amber-800">
-                Las asesorías podrán ser grabadas para verificar la calidad de la atención y el cumplimiento de normas éticas institucionales de los participantes.
+              <p className="text-justify text-xs leading-relaxed text-amber-800">
+                {c.result.recordingNotice}
               </p>
             </div>
 
-            {/* Checkbox prominente - ARRIBA del botón para mejor UX móvil */}
-            <label className={`mt-3 flex cursor-pointer items-start gap-2 rounded-xl border-2 bg-white p-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 ${
-              !recordingAccepted 
-                ? 'border-utpl-blue/50 shadow-sm' 
-                : 'border-emerald-300 bg-emerald-50/30'
-            }`}>
-              <input
-                type="checkbox"
-                checked={recordingAccepted}
-                onChange={(event) => setRecordingAccepted(event.target.checked)}
-                className="accent-utpl-blue mt-0.5 h-5 w-5 rounded border-gray-300 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
-              />
-              <span className="text-sm font-medium text-utpl-text">
-                Acepto el{' '}
+            <div className="mt-3 rounded-xl border-2 border-utpl-blue/50 bg-white p-3 text-left shadow-sm">
+              <p className="text-xs font-medium leading-relaxed text-utpl-text">
+                {c.result.ethicsRegulationIntro}{' '}
                 <a
-                  href="https://procuraduria.utpl.edu.ec/sitios/documentos/NormativasPublicas/Reglamento%20de%20%C3%89tica%20y%20R%C3%A9gimen%20Disciplinario%20UTPL.pdf"
+                  href={c.result.ethicsRegulationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-utpl-blue underline underline-offset-2 hover:text-utpl-blue-hover"
-                  onClick={(e) => e.stopPropagation()}
                 >
-                  Reglamento de Ética y Régimen Disciplinario de la UTPL
+                  {c.result.ethicsRegulationLinkText}
                 </a>
-                {' '}<span className="text-red-500">*</span>
-              </span>
-            </label>
-            {!recordingAccepted && (
-              <p className="mt-1.5 text-center text-xs font-medium text-utpl-blue">
-                Debes aceptar para desbloquear el acceso a Zoom
               </p>
-            )}
+            </div>
           </motion.div>
 
           <motion.div
             className="mx-auto mt-4 max-w-xs"
             variants={itemVariants}
           >
-            {recordingAccepted ? (
-              <>
-                <motion.button
-                  type="button"
-                  onClick={handleJoinZoom}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-3 text-sm font-bold text-utpl-blue shadow-lg transition-all hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+            <motion.button
+              type="button"
+              onClick={handleJoinZoom}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-utpl-blue/20 bg-white px-5 py-3 text-sm font-bold text-utpl-blue shadow-lg transition-all hover:bg-utpl-blue hover:text-white focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Video className="h-4 w-4" />
+              Unirse a Zoom
+            </motion.button>
+            {!isMobile && (
+              <p className="mt-2 text-[10px] text-slate-400">
+                o{' '}
+                <a
+                  href={webZoomLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline transition-colors hover:text-utpl-blue focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
-                  <Video className="h-4 w-4" />
-                  Unirse a Zoom
-                </motion.button>
-                {!isMobile && (
-                  <p className="mt-2 text-[10px] text-slate-400">
-                    o{' '}
-                    <a
-                      href={webZoomLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline transition-colors hover:text-utpl-blue focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
-                    >
-                      abrir en navegador
-                    </a>
-                  </p>
-                )}
-              </>
-            ) : (
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  disabled
-                  aria-label="Acepta el reglamento para desbloquear el acceso a Zoom"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-200 px-5 py-3 text-sm font-bold text-slate-400 cursor-not-allowed"
-                >
-                  <Lock className="h-4 w-4" />
-                  Unirse a Zoom
-                </button>
-                <p className="text-center text-xs text-slate-400">
-                  Acepta el reglamento arriba para continuar
-                </p>
-              </div>
+                  abrir en navegador
+                </a>
+              </p>
             )}
           </motion.div>
         </>

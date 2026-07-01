@@ -10,8 +10,7 @@ import { useFormContext } from '@/contexts/FormContext';
 import { getCountryByName } from '@/data/countries';
 
 const modalidadOptions = [
-  { label: 'En línea', value: 'En línea' },
-  { label: 'Distancia', value: 'Distancia' },
+  { label: 'Distancia y En línea', value: 'Distancia y En línea' },
   { label: 'Presencial', value: 'Presencial' },
 ];
 
@@ -149,7 +148,7 @@ export default function StepPersonalData({ onPrev }: StepPersonalDataProperties)
               onChange={(v) =>
                 dispatch({
                   type: 'SET_MODALIDAD',
-                  modalidad: v as 'En línea' | 'Distancia' | 'Presencial',
+                  modalidad: v as 'Distancia y En línea' | 'Presencial',
                 })
               }
               options={modalidadOptions}
@@ -169,7 +168,7 @@ export default function StepPersonalData({ onPrev }: StepPersonalDataProperties)
               }
               className="accent-utpl-blue mt-0.5 h-5 w-5 rounded border-gray-300 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2"
             />
-            <span className="text-sm leading-relaxed text-utpl-text">
+            <span className="text-justify text-sm leading-relaxed text-utpl-text">
               Al enviar este formulario autorizo expresamente a la Universidad Técnica Particular de
               Loja a recopilar, almacenar y tratar mis datos personales, que constan en este
               documento, con la finalidad exclusiva de gestionar, atender, analizar y dar respuesta a

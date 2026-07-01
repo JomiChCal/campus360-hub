@@ -9,7 +9,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import MobileWarningModal from '@/components/MobileWarningModal';
 import PageHeader from '@/components/PageHeader';
 import ScheduleHydrator from '@/components/ScheduleHydrator';
-import StepIndicator from '@/components/StepIndicator';
+import FormStepIndicator from '@/components/FormStepIndicator';
 import ContactTimeModal from '@/components/wizard/ContactTimeModal';
 import GuideModal from '@/components/wizard/GuideModal';
 import { FormProvider, useFormContext } from '@/contexts/FormContext';
@@ -24,17 +24,7 @@ const ROUTE_TO_STEP: Record<string, number> = {
   '/resultado': 5,
 };
 
-const STEP_TO_ROUTE: Record<number, string> = {
-  1: '/tipo',
-  2: '/datos',
-  3: '/servicio',
-  4: '/detalle',
-  5: '/resultado',
-};
-
 function FormShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const searchParameters = useSearchParams();
   const {
     data,
     dispatch,
@@ -58,22 +48,14 @@ function FormShell({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, data.step, setStep]);
 
-  const handleStepClick = useCallback(
-    (step: number) => {
-      const route = STEP_TO_ROUTE[step];
-      if (route) {
-        router.push(buildRoute(route, searchParameters));
-      }
-    },
-    [router, searchParameters]
-  );
+  const isTipoPage = pathname.endsWith('/tipo');
 
   return (
     <div className="flex min-h-dvh flex-col">
       <PageHeader />
 
-      <div className="bg-utpl-navy">
-        <section className="relative z-10 pb-6 pt-16 text-center">
+      <div>
+        <section className="relative z-10 bg-utpl-blue pb-6 pt-16 text-center">
         <div className="mx-auto max-w-3xl px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -88,21 +70,18 @@ function FormShell({ children }: { children: React.ReactNode }) {
         </div>
       </section>
 
-      <section className="relative z-10 bg-utpl-gold py-2.5 text-center">
+      <section className="relative z-10 bg-[#febe10] py-2.5 text-center">
         <p className="font-display text-[11px] font-extrabold uppercase tracking-[3px] text-utpl-navy">
           Escribiendo historias que transforman el mundo
         </p>
       </section>
 
-      <section className="relative z-10 bg-utpl-navy-medium py-4">
-        <div className="mx-auto max-w-3xl px-4">
-          <StepIndicator
-            currentStep={data.step}
-            userType={data.userType}
-            onStepClick={handleStepClick}
-          />
-        </div>
-      </section>
+      <div className="relative z-10 bg-utpl-blue py-5 text-center">
+        <p className="font-display text-[22.9px] font-semibold text-white sm:text-[25.7px]">
+          {c.layout.welcome.banner}
+        </p>
+      </div>
+
       </div>
 
       <main className="relative z-10 mx-auto flex w-full flex-1 max-w-3xl flex-col px-4 py-8">
@@ -128,6 +107,11 @@ function FormShell({ children }: { children: React.ReactNode }) {
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="rounded-xl bg-white px-6 py-7 sm:px-8">
+              {!isTipoPage && (
+                <div className="mb-8">
+                  <FormStepIndicator />
+                </div>
+              )}
               <ErrorBoundary>
                 {children}
               </ErrorBoundary>
@@ -136,7 +120,7 @@ function FormShell({ children }: { children: React.ReactNode }) {
         </AnimatePresence>
       </main>
 
-      <footer className="relative z-10 shrink-0 bg-utpl-navy py-5 text-center">
+      <footer className="relative z-10 shrink-0 bg-utpl-blue py-5 text-center">
         <p className="text-xs tracking-wider text-white/50">
           &copy; {new Date().getFullYear()} {c.layout.footer}
         </p>
