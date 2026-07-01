@@ -10,7 +10,7 @@ export default function UtplLogo({ className = '', variant = 'default' }: UtplLo
         <span className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
           UTPL
         </span>
-        <span className="font-display text-2xl font-bold text-utpl-gold sm:text-3xl">+</span>
+        <span className="font-display text-2xl font-bold text-[#febe10] sm:text-3xl">+</span>
       </div>
     );
   }
@@ -21,7 +21,7 @@ export default function UtplLogo({ className = '', variant = 'default' }: UtplLo
         <span className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
           UTPL
         </span>
-        <span className="font-display text-2xl font-bold text-utpl-gold sm:text-3xl">+</span>
+        <span className="font-display text-2xl font-bold text-[#febe10] sm:text-3xl">+</span>
       </div>
       <span className="mt-0.5 font-sans text-[9px] font-semibold uppercase tracking-[0.25em] text-white/60">
         La Universidad Católica de Loja

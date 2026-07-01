@@ -41,7 +41,7 @@ export default function StepNavigation({
           type="button"
           onClick={onNext}
           disabled={isSubmitting}
-          className="flex items-center gap-1.5 rounded-xl bg-utpl-blue px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-utpl-blue-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="flex items-center gap-1.5 rounded-xl bg-[#004270] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-[#003358] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#004270] focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 import AnnouncementCarousel from '@/components/AnnouncementCarousel';
+import FormStepIndicator from '@/components/FormStepIndicator';
 import StepUserType from '@/components/wizard/StepUserType';
 import { useFormContext } from '@/contexts/FormContext';
 import { c } from '@/data/content';
@@ -28,30 +29,30 @@ const itemVariants = {
   },
 };
 
-function RecordingNotice() {
-  const noticeText = c.steps.tipo.recordingNotice;
-  const url = c.steps.tipo.recordingNoticeUrl;
-  const linkText = 'aquí';
-
-  const parts = noticeText.split(linkText);
-
-  return (
-    <div className="w-full rounded-xl border-l-4 border-utpl-gold bg-white px-4 py-3">
-      <p className="text-xs font-medium leading-relaxed text-utpl-navy/70">
-        {parts[0]}
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-semibold text-utpl-navy underline decoration-utpl-gold/50 underline-offset-2 hover:text-utpl-navy-light"
-        >
-          {linkText}
-        </a>
-        {parts[1]}
-      </p>
-    </div>
-  );
-}
+// function RecordingNotice() {
+//   const noticeText = c.steps.tipo.recordingNotice;
+//   const url = c.steps.tipo.recordingNoticeUrl;
+//   const linkText = 'aquí';
+//
+//   const parts = noticeText.split(linkText);
+//
+//   return (
+//     <div className="w-full rounded-xl border-l-4 border-utpl-gold bg-white px-4 py-3">
+//       <p className="text-xs font-medium leading-relaxed text-utpl-navy/70">
+//         {parts[0]}
+//         <a
+//           href={url}
+//           target="_blank"
+//           rel="noopener noreferrer"
+//           className="font-semibold text-utpl-navy underline decoration-utpl-gold/50 underline-offset-2 hover:text-utpl-navy-light"
+//         >
+//           {linkText}
+//         </a>
+//         {parts[1]}
+//       </p>
+//     </div>
+//   );
+// }
 
 function TipoContent() {
   const router = useRouter();
@@ -102,12 +103,13 @@ function TipoContent() {
         <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.15em] text-utpl-muted">
           Selecciona tu tipo de usuario
         </p>
+        <FormStepIndicator className="mb-6" />
         <StepUserType onSelect={handleSelectUserType} />
       </motion.div>
 
-      <motion.div variants={itemVariants}>
+      {/* <motion.div variants={itemVariants}>
         <RecordingNotice />
-      </motion.div>
+      </motion.div> */}
 
       {errors.userType && (
         <motion.p

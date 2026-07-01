@@ -58,7 +58,7 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
                 type="button"
                 disabled={!canClick}
                 onClick={canClick ? () => onStepClick(step.wizardStep) : undefined}
-                className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-utpl-navy-medium focus-visible:outline-none ${
+                className={`relative flex flex-col items-center gap-1.5 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-utpl-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none ${
                   canClick ? 'cursor-pointer hover:scale-105' : 'cursor-default'
                 }`}
                 aria-current={isCurrent ? 'step' : undefined}
@@ -68,27 +68,31 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
                   transition={{ duration: 0.5 }}
                   className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-11 sm:w-11 ${
                     isCurrent
-                      ? 'border-utpl-gold bg-utpl-gold text-utpl-navy'
+                      ? 'border-[#febe10] bg-[#febe10] text-utpl-navy'
                       : isCompleted
-                        ? 'border-utpl-gold bg-utpl-gold/20 text-utpl-gold'
-                        : 'border-white/20 bg-white/10 text-white/50'
+                        ? 'border-[#febe10] bg-[#febe10]/20 text-utpl-navy'
+                        : 'border-utpl-border bg-utpl-surface text-utpl-muted'
                   }`}
                 >
                   <step.Icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                 </motion.div>
                 <span
                   className={`whitespace-nowrap text-[10px] font-semibold tracking-wide sm:text-[11px] ${
-                    isCurrent ? 'text-utpl-gold' : isCompleted ? 'text-utpl-gold/80' : 'text-white/50'
+                    isCurrent
+                      ? 'text-utpl-navy'
+                      : isCompleted
+                        ? 'text-utpl-navy/70'
+                        : 'text-utpl-muted'
                   }`}
                 >
                   {step.label}
                 </span>
               </button>
               {!isLast && (
-                <div className="mx-1.5 h-0.5 w-6 rounded-full bg-white/15 sm:mx-2 sm:w-8">
+                <div className="mx-1.5 h-0.5 w-6 rounded-full bg-utpl-border sm:mx-2 sm:w-8">
                   {isCompleted && (
                     <motion.div
-                      className="h-full rounded-full bg-utpl-gold"
+                      className="h-full rounded-full bg-[#febe10]"
                       initial={{ width: 0 }}
                       animate={{ width: '100%' }}
                       transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -101,9 +105,9 @@ function StepIndicator({ currentStep, onStepClick }: StepIndicatorProperties) {
         })}
       </div>
 
-      <div className="mx-auto mt-3 h-1 max-w-md overflow-hidden rounded-full bg-white/15">
+      <div className="mx-auto mt-3 h-1 max-w-md overflow-hidden rounded-full bg-utpl-border">
         <motion.div
-          className="h-full rounded-full bg-utpl-gold"
+          className="h-full rounded-full bg-[#febe10]"
           initial={{ width: '0%' }}
           animate={{ width: `${progressPercent}%` }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}

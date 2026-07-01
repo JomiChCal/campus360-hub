@@ -81,18 +81,28 @@ export default function StepServiceCatalog({
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredCategories.map((category) => {
             const Icon = getCategoryIcon(category.iconLabel);
+            const hasDescription = Boolean(category.description?.trim());
+
             return (
               <button
                 key={category.id}
                 type="button"
                 onClick={() => onCategorySelect(category)}
-                className="group rounded-2xl border border-utpl-border bg-white p-5 text-left shadow-md transition-all hover:-translate-y-1 hover:border-utpl-gold hover:shadow-xl focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none"
+                className={`group rounded-2xl border border-utpl-border bg-white p-5 shadow-md transition-all hover:-translate-y-1 hover:border-utpl-gold hover:shadow-xl focus-visible:ring-2 focus-visible:ring-utpl-blue focus-visible:ring-offset-2 focus-visible:outline-none ${
+                  hasDescription
+                    ? 'text-left'
+                    : 'flex min-h-[152px] flex-col items-center justify-center text-center'
+                }`}
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-utpl-surface shadow-sm transition-colors group-hover:bg-utpl-gold/20">
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-utpl-surface shadow-sm transition-colors group-hover:bg-utpl-gold/20 ${
+                    hasDescription ? 'mb-4' : 'mb-3'
+                  }`}
+                >
                   <Icon className="h-6 w-6 text-utpl-blue" />
                 </div>
                 <h3 className="text-base font-bold text-utpl-text">{category.title}</h3>
-                {category.description && (
+                {hasDescription && (
                   <p className="mt-1 text-sm text-utpl-muted">{category.description}</p>
                 )}
               </button>

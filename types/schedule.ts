@@ -21,6 +21,8 @@ export type ResolvedSchedule = {
   titulo?: string;
   horario?: HorarioRow;
   modo?: ScheduleMode;
+  /** True when the resolved profile only applies on weekdays (Horario Normal). */
+  weekdayOnly?: boolean;
 };
 
 export type ContactTimeOption = {

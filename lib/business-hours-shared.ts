@@ -1,6 +1,6 @@
 import {
-  buildBusinessHoursMessage,
   buildContactTimeOptions,
+  buildScheduleSummaryMessage,
   canAcceptTurnosFromState,
   getBusinessHoursStateFromResolved,
   getEcuadorClock,
@@ -14,13 +14,18 @@ import type { BusinessHoursState, ContactTimeOption } from '@/types/schedule';
 
 export type { BusinessHoursState };
 
+function getScheduleStateFromStore() {
+  const clock = getEcuadorClock();
+  const store = getClientScheduleStore();
+  const resolved = resolveActiveSchedule(store, clock);
+  const state = getBusinessHoursStateFromResolved(resolved, clock);
+  return { clock, store, resolved, state };
+}
+
 export function getBusinessHoursState(): BusinessHoursState {
   const mock = getMockState();
   if (mock) return mock;
-
-  const store = getClientScheduleStore();
-  const resolved = resolveActiveSchedule(store);
-  return getBusinessHoursStateFromResolved(resolved, getEcuadorClock());
+  return getScheduleStateFromStore().state;
 }
 
 export function canAcceptNewTurnos(): boolean {
@@ -37,22 +42,17 @@ export function isWizardRouteAllowed(): boolean {
 }
 
 export function getBusinessHoursMessage(): string {
-  const store = getClientScheduleStore();
-  const resolved = resolveActiveSchedule(store);
-  if (!resolved.horario) return 'Horario de atención no disponible';
-  return buildBusinessHoursMessage(resolved.horario);
+  return buildScheduleSummaryMessage(getClientScheduleStore());
 }
 
 export function getContactTimeOptions(): ContactTimeOption[] {
-  const store = getClientScheduleStore();
-  const resolved = resolveActiveSchedule(store);
+  const { resolved } = getScheduleStateFromStore();
   if (!resolved.horario) return [];
   return buildContactTimeOptions(resolved.horario);
 }
 
 export function getLunchResumeLabel(): string | null {
-  const store = getClientScheduleStore();
-  const resolved = resolveActiveSchedule(store);
+  const { resolved } = getScheduleStateFromStore();
   if (!resolved.horario) return null;
   return getLunchResumeTime(resolved.horario);
 }

@@ -47,16 +47,14 @@ export default function StepFreeText() {
         </div>
       )}
 
-      <h2 className="mb-2 text-center text-2xl font-bold text-utpl-text">
-        Describe tu requerimiento
+      <h2 className="mb-8 text-center text-2xl font-bold text-utpl-text">
+        Cuéntanos el detalle de tu requerimiento
       </h2>
-      <p className="mb-8 text-center text-sm text-utpl-muted">
-        Sé lo más específico posible para recibir mejor atención
-      </p>
       <label className="block">
         <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-utpl-muted">
           <MessageSquare className="h-4 w-4" />
-          Detalle de tu solicitud <span className="text-red-500">*</span>
+          Describe tu solicitud de forma clara para brindarte una mejor atención.{' '}
+          <span className="text-red-500">*</span>
         </span>
         <textarea
           rows={5}

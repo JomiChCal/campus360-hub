@@ -23,7 +23,7 @@ interface StepUserTypeProperties {
 function UserIcon({ type }: { type: 'estudiante' | 'aspirante' }) {
   const Icon = type === 'estudiante' ? User : UserPlus;
   return (
-    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-utpl-gold">
+    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#febe10]">
       <Icon className="h-6 w-6" style={{ color: '#0d2e5c' }} strokeWidth={2} />
     </div>
   );
@@ -62,7 +62,7 @@ export default function StepUserType({ onSelect }: StepUserTypeProperties) {
         <UserIcon type="aspirante" />
         <h3 className="mt-4 font-display text-xl font-bold text-utpl-navy">{c.steps.tipo.aspirante.heading}</h3>
         <p className="mt-2 text-sm leading-relaxed text-utpl-muted">{c.steps.tipo.aspirante.description}</p>
-        <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-utpl-gold px-4 py-2 text-sm font-semibold text-utpl-navy transition-colors group-hover:brightness-95">
+        <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#febe10] px-4 py-2 text-sm font-semibold text-utpl-navy transition-colors group-hover:brightness-95">
           <span>{c.steps.tipo.aspirante.button}</span>
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
         </div>

@@ -5,10 +5,11 @@ import {
   getEcuadorClock,
   getMockState,
   resolveActiveSchedule,
-  buildBusinessHoursMessage,
+  buildScheduleSummaryMessage,
   buildContactTimeOptions,
   canAcceptTurnosFromState,
   getLunchResumeTime,
+  type EcuadorClock,
 } from '@/lib/schedule-core';
 import { mapSharePointSchedulePayload } from '@/lib/server/schedule-mapper';
 import { writeScheduleToKv } from '@/lib/server/schedule-kv';
@@ -18,14 +19,15 @@ export async function getScheduleStore(): Promise<ScheduleStore> {
   return createDefaultScheduleStore();
 }
 
-export async function getResolvedSchedule(): Promise<ResolvedSchedule> {
+export async function getResolvedSchedule(clock: EcuadorClock = getEcuadorClock()): Promise<ResolvedSchedule> {
   const store = await getScheduleStore();
-  return resolveActiveSchedule(store);
+  return resolveActiveSchedule(store, clock);
 }
 
 export async function getCurrentBusinessHoursState(): Promise<BusinessHoursState> {
-  const resolved = await getResolvedSchedule();
-  return getBusinessHoursStateFromResolved(resolved, getEcuadorClock());
+  const clock = getEcuadorClock();
+  const resolved = await getResolvedSchedule(clock);
+  return getBusinessHoursStateFromResolved(resolved, clock);
 }
 
 export function refreshScheduleFromPayload(
@@ -64,20 +66,21 @@ export async function upsertScheduleFromPayload(body: Record<string, unknown>): 
   const currentStore = await getScheduleStore();
   const store = refreshScheduleFromPayload(body, currentStore);
   await persistScheduleStore(store);
-  return { store, resolved: resolveActiveSchedule(store) };
+  const clock = getEcuadorClock();
+  return { store, resolved: resolveActiveSchedule(store, clock) };
 }
 
-export function getSchedulePresentation(horario: HorarioRow | null) {
+export function getSchedulePresentation(store: ScheduleStore, horario: HorarioRow | null) {
   if (!horario) {
     return {
-      message: 'Horario de atención no disponible',
+      message: buildScheduleSummaryMessage(store),
       contactTimeOptions: [] as ReturnType<typeof buildContactTimeOptions>,
       lunchResumeTime: null as string | null,
     };
   }
 
   return {
-    message: buildBusinessHoursMessage(horario),
+    message: buildScheduleSummaryMessage(store),
     contactTimeOptions: buildContactTimeOptions(horario),
     lunchResumeTime: getLunchResumeTime(horario),
   };
@@ -91,12 +94,15 @@ export async function getScheduleConfigSnapshot(): Promise<{
   const mock = getMockState();
   if (mock) {
     const store = createDefaultScheduleStore();
+    const clock = getEcuadorClock();
+    const resolved = resolveActiveSchedule(store, clock);
     const resolved = resolveActiveSchedule(store);
     return { store, resolved, state: mock };
   }
 
+  const clock = getEcuadorClock();
   const store = await getScheduleStore();
-  const resolved = resolveActiveSchedule(store);
-  const state = getBusinessHoursStateFromResolved(resolved, getEcuadorClock());
+  const resolved = resolveActiveSchedule(store, clock);
+  const state = getBusinessHoursStateFromResolved(resolved, clock);
   return { store, resolved, state };
 }
