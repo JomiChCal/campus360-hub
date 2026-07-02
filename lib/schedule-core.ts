@@ -15,7 +15,13 @@ export type EcuadorClock = {
   isWeekday: boolean;
 };
 
+export function isScheduleMockEnabled(): boolean {
+  return process.env.NODE_ENV !== 'production' && process.env.VERCEL_ENV !== 'production';
+}
+
 export function getMockState(): BusinessHoursState | null {
+  if (!isScheduleMockEnabled()) return null;
+
   const mockMode = process.env.NEXT_PUBLIC_MOCK_BUSINESS_HOURS;
   if (
     mockMode === 'open' ||

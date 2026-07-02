@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { getBusinessHoursStateFromResolved, getEcuadorClock } from '@/lib/schedule-core';
 import { checkRateLimit, getClientIp } from '@/lib/server/api-utilities';
-import { getResolvedSchedule, getScheduleStore } from '@/lib/server/schedule-service';
+import { getScheduleConfigSnapshot } from '@/lib/server/schedule-service';
 
 export async function GET(request: Request) {
   const clientIp = getClientIp(request);
@@ -14,10 +13,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const clock = getEcuadorClock();
-    const store = await getScheduleStore();
-    const resolved = await getResolvedSchedule(clock);
-    const state = getBusinessHoursStateFromResolved(resolved, clock);
+    const { store, resolved, state, meta } = await getScheduleConfigSnapshot();
 
     return NextResponse.json(
       {
@@ -25,6 +21,7 @@ export async function GET(request: Request) {
         resolved,
         state,
         updatedAt: store.updatedAt,
+        meta,
       },
       { headers: { 'Cache-Control': 'no-store' } }
     );
@@ -36,6 +33,13 @@ export async function GET(request: Request) {
         resolved: { hasActiveSchedule: false },
         state: 'after-hours',
         updatedAt: null,
+        meta: {
+          source: 'empty',
+          redisEnabled: false,
+          mockActive: false,
+          ecuadorTime: null,
+          isWeekday: null,
+        },
       },
       { headers: { 'Cache-Control': 'no-store' } }
     );

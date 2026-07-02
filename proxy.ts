@@ -17,13 +17,18 @@ async function fetchScheduleState(request: NextRequest): Promise<BusinessHoursSt
 
   try {
     const configUrl = new URL('/api/schedule-config', request.url);
-    const response = await fetch(configUrl, { cache: 'no-store' });
+    const response = await fetch(configUrl, {
+      cache: 'no-store',
+      headers: { 'x-schedule-source': 'proxy' },
+    });
     if (response.ok) {
       const data = (await response.json()) as { state?: BusinessHoursState };
       if (data.state) return data.state;
+    } else {
+      console.error('[proxy] schedule-config respondió', response.status);
     }
-  } catch {
-    // fallback cerrado
+  } catch (error) {
+    console.error('[proxy] Error consultando schedule-config:', error);
   }
 
   return 'after-hours';

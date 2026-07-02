@@ -4,7 +4,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
 import { useFormContext } from '@/contexts/FormContext';
-import { getBusinessHoursState } from '@/lib/business-hours';
 import { setClientScheduleStore } from '@/lib/schedule-client-store';
 import type { BusinessHoursState, ScheduleStore } from '@/types/schedule';
 
@@ -26,14 +25,14 @@ async function syncScheduleFromApi(): Promise<BusinessHoursState | null> {
       state?: BusinessHoursState;
     };
 
-    if (data.horarios) {
+    if (data.horarios && Object.keys(data.horarios).length > 0) {
       setClientScheduleStore({
         horarios: data.horarios,
         updatedAt: data.updatedAt ?? new Date().toISOString(),
       });
     }
 
-    return data.state ?? getBusinessHoursState();
+    return data.state ?? null;
   } catch {
     return null;
   }
@@ -60,7 +59,9 @@ export default function BusinessHoursWatcher() {
 
     const evaluate = async () => {
       const syncedState = await syncScheduleFromApi();
-      const state = syncedState ?? getBusinessHoursState();
+      if (syncedState === null) return;
+
+      const state = syncedState;
       const previous = previousStateReference.current;
 
       if (state === 'closing-soon' && !modalShownForStateReference.current) {

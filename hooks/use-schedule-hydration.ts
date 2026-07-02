@@ -20,15 +20,21 @@ export function useScheduleHydration() {
     async function load() {
       try {
         const response = await fetch('/api/schedule-config', { cache: 'no-store' });
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) setIsReady(true);
+          return;
+        }
 
         const data = (await response.json()) as ScheduleConfigResponse;
-        if (cancelled || !data.horarios) return;
+        if (cancelled) return;
 
-        setClientScheduleStore({
-          horarios: data.horarios,
-          updatedAt: data.updatedAt ?? new Date().toISOString(),
-        });
+        if (data.horarios && Object.keys(data.horarios).length > 0) {
+          setClientScheduleStore({
+            horarios: data.horarios,
+            updatedAt: data.updatedAt ?? new Date().toISOString(),
+          });
+        }
+
         setIsReady(true);
       } catch {
         if (!cancelled) setIsReady(true);

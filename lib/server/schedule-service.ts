@@ -11,7 +11,7 @@ import {
   type EcuadorClock,
 } from '@/lib/schedule-core';
 import { mapSharePointSchedulePayload } from '@/lib/server/schedule-mapper';
-import { readScheduleFromKv, writeScheduleToKv } from '@/lib/server/schedule-kv';
+import { isScheduleKvEnabled, readScheduleFromKv, writeScheduleToKv } from '@/lib/server/schedule-kv';
 import {
   TITULO_HORARIO_EXTENDIDO,
   TITULO_HORARIO_EXTENDIDO_FIN_SEMANA,
@@ -19,9 +19,42 @@ import {
 } from '@/types/schedule';
 import type { BusinessHoursState, HorarioRow, ResolvedSchedule, ScheduleStore } from '@/types/schedule';
 
+export type ScheduleStoreSource = 'kv' | 'empty' | 'mock';
+
+export type ScheduleConfigMeta = {
+  source: ScheduleStoreSource;
+  redisEnabled: boolean;
+  mockActive: boolean;
+  ecuadorTime: string;
+  isWeekday: boolean;
+};
+
+export async function getScheduleStoreWithMeta(): Promise<{
+  store: ScheduleStore;
+  source: ScheduleStoreSource;
+  redisEnabled: boolean;
+}> {
+  const redisEnabled = isScheduleKvEnabled();
+  if (!redisEnabled) {
+    console.error('[schedule-service] Redis no configurado (UPSTASH_REDIS_REST_URL/TOKEN)');
+    return { store: createEmptyScheduleStore(), source: 'empty', redisEnabled: false };
+  }
+
+  try {
+    const cached = await readScheduleFromKv();
+    if (cached) {
+      return { store: cached, source: 'kv', redisEnabled: true };
+    }
+    return { store: createEmptyScheduleStore(), source: 'empty', redisEnabled: true };
+  } catch (error) {
+    console.error('[schedule-service] Error leyendo KV:', error);
+    return { store: createEmptyScheduleStore(), source: 'empty', redisEnabled: true };
+  }
+}
+
 export async function getScheduleStore(): Promise<ScheduleStore> {
-  const cached = await readScheduleFromKv();
-  return cached ?? createEmptyScheduleStore();
+  const { store } = await getScheduleStoreWithMeta();
+  return store;
 }
 
 export async function getResolvedSchedule(clock: EcuadorClock = getEcuadorClock()): Promise<ResolvedSchedule> {
@@ -98,18 +131,45 @@ export async function getScheduleConfigSnapshot(): Promise<{
   store: ScheduleStore;
   resolved: ResolvedSchedule;
   state: BusinessHoursState;
+  meta: ScheduleConfigMeta;
 }> {
+  const clock = getEcuadorClock();
+  const hours = Math.floor(clock.minutes / 60);
+  const mins = clock.minutes % 60;
+  const ecuadorTime = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+
   const mock = getMockState();
   if (mock) {
     const store = createDefaultScheduleStore();
-    const clock = getEcuadorClock();
     const resolved = resolveActiveSchedule(store, clock);
-    return { store, resolved, state: mock };
+    return {
+      store,
+      resolved,
+      state: mock,
+      meta: {
+        source: 'mock',
+        redisEnabled: isScheduleKvEnabled(),
+        mockActive: true,
+        ecuadorTime,
+        isWeekday: clock.isWeekday,
+      },
+    };
   }
 
-  const clock = getEcuadorClock();
-  const store = await getScheduleStore();
+  const { store, source, redisEnabled } = await getScheduleStoreWithMeta();
   const resolved = resolveActiveSchedule(store, clock);
   const state = getBusinessHoursStateFromResolved(resolved, clock);
-  return { store, resolved, state };
+
+  return {
+    store,
+    resolved,
+    state,
+    meta: {
+      source,
+      redisEnabled,
+      mockActive: false,
+      ecuadorTime,
+      isWeekday: clock.isWeekday,
+    },
+  };
 }
