@@ -21,8 +21,10 @@ export type ResolvedSchedule = {
   titulo?: string;
   horario?: HorarioRow;
   modo?: ScheduleMode;
-  /** True when the resolved profile only applies on weekdays (Horario Normal). */
+  /** Perfiles que solo aplican lun–vie (Normal y Extendido). */
   weekdayOnly?: boolean;
+  /** Perfil que solo aplica sáb–dom (Fin de Semana). */
+  weekendOnly?: boolean;
 };
 
 export type ContactTimeOption = {
@@ -32,5 +34,6 @@ export type ContactTimeOption = {
 
 export const TITULO_HORARIO_NORMAL = 'Horario Normal';
 export const TITULO_HORARIO_EXTENDIDO = 'Horario Extendido';
+export const TITULO_HORARIO_EXTENDIDO_FIN_SEMANA = 'Horario Extendido Fin de Semana';
 
 export const CLOSING_BUFFER_MINUTES = 10;

@@ -7,16 +7,21 @@ import {
   resolveActiveSchedule,
   buildScheduleSummaryMessage,
   buildContactTimeOptions,
-  canAcceptTurnosFromState,
   getLunchResumeTime,
   type EcuadorClock,
 } from '@/lib/schedule-core';
 import { mapSharePointSchedulePayload } from '@/lib/server/schedule-mapper';
-import { writeScheduleToKv } from '@/lib/server/schedule-kv';
+import { readScheduleFromKv, writeScheduleToKv } from '@/lib/server/schedule-kv';
+import {
+  TITULO_HORARIO_EXTENDIDO,
+  TITULO_HORARIO_EXTENDIDO_FIN_SEMANA,
+  TITULO_HORARIO_NORMAL,
+} from '@/types/schedule';
 import type { BusinessHoursState, HorarioRow, ResolvedSchedule, ScheduleStore } from '@/types/schedule';
 
 export async function getScheduleStore(): Promise<ScheduleStore> {
-  return createDefaultScheduleStore();
+  const cached = await readScheduleFromKv();
+  return cached ?? createEmptyScheduleStore();
 }
 
 export async function getResolvedSchedule(clock: EcuadorClock = getEcuadorClock()): Promise<ResolvedSchedule> {
@@ -30,6 +35,14 @@ export async function getCurrentBusinessHoursState(): Promise<BusinessHoursState
   return getBusinessHoursStateFromResolved(resolved, clock);
 }
 
+function normalizeTituloHint(tituloHint: string): string {
+  const lower = tituloHint.toLowerCase();
+  if (lower.includes('fin de semana')) return TITULO_HORARIO_EXTENDIDO_FIN_SEMANA;
+  if (lower.includes('extendido')) return TITULO_HORARIO_EXTENDIDO;
+  if (lower.includes('normal')) return TITULO_HORARIO_NORMAL;
+  return tituloHint;
+}
+
 export function refreshScheduleFromPayload(
   body: Record<string, unknown>,
   currentStore: ScheduleStore
@@ -37,12 +50,7 @@ export function refreshScheduleFromPayload(
   const tituloHint = String(
     body.Titulo ?? body.Title ?? body.titulo ?? body.title ?? ''
   ).trim();
-  const normalizedHint = tituloHint.toLowerCase().includes('extendido')
-    ? 'Horario Extendido'
-    : tituloHint.toLowerCase().includes('normal')
-      ? 'Horario Normal'
-      : tituloHint;
-
+  const normalizedHint = tituloHint ? normalizeTituloHint(tituloHint) : '';
   const existing = normalizedHint ? currentStore.horarios[normalizedHint] : undefined;
   const { titulo, row } = mapSharePointSchedulePayload(body, existing);
 

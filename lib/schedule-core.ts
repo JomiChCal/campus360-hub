@@ -1,6 +1,7 @@
 import {
   CLOSING_BUFFER_MINUTES,
   TITULO_HORARIO_EXTENDIDO,
+  TITULO_HORARIO_EXTENDIDO_FIN_SEMANA,
   TITULO_HORARIO_NORMAL,
   type BusinessHoursState,
   type ContactTimeOption,
@@ -36,10 +37,10 @@ export function createDefaultScheduleStore(): ScheduleStore {
     horarios: {
       [TITULO_HORARIO_NORMAL]: {
         horaAperturaM: '08:00',
-        horaCierreM: null,
-        horarioAperturaT: null,
+        horaCierreM: '13:00',
+        horarioAperturaT: '15:00',
         horarioCierreT: '18:00',
-        modo: 'continuo',
+        modo: 'dual',
         habilitado: true,
       },
     },
@@ -82,24 +83,38 @@ export function getEcuadorClock(date: Date = new Date()): EcuadorClock {
 }
 
 function buildResolvedSchedule(titulo: string, horario: HorarioRow): ResolvedSchedule {
+  const isWeekdayProfile =
+    titulo === TITULO_HORARIO_NORMAL || titulo === TITULO_HORARIO_EXTENDIDO;
+  const isWeekendProfile = titulo === TITULO_HORARIO_EXTENDIDO_FIN_SEMANA;
+
   return {
     hasActiveSchedule: true,
     titulo,
     horario,
     modo: horario.modo,
-    weekdayOnly: titulo === TITULO_HORARIO_NORMAL,
+    weekdayOnly: isWeekdayProfile,
+    weekendOnly: isWeekendProfile,
   };
 }
 
+/**
+ * Resuelve el perfil activo según el día y las reglas de prioridad:
+ *
+ * Lun–vie: Normal > Extendido (si ambos activos, gana Normal).
+ * Sáb–dom: solo Fin de Semana si está activo (anula Normal y Extendido).
+ * Ninguno activo para el día → sin horario activo (after-hours).
+ */
 export function resolveActiveSchedule(
   store: ScheduleStore,
   clock: EcuadorClock = getEcuadorClock()
 ): ResolvedSchedule {
   const normal = store.horarios[TITULO_HORARIO_NORMAL];
   const extendido = store.horarios[TITULO_HORARIO_EXTENDIDO];
+  const finDeSemana = store.horarios[TITULO_HORARIO_EXTENDIDO_FIN_SEMANA];
 
   const normalOn = normal?.habilitado === true;
   const extendidoOn = extendido?.habilitado === true;
+  const finDeSemanaOn = finDeSemana?.habilitado === true;
 
   if (clock.isWeekday) {
     if (normalOn && normal) {
@@ -111,8 +126,8 @@ export function resolveActiveSchedule(
     return { hasActiveSchedule: false };
   }
 
-  if (extendidoOn && extendido) {
-    return buildResolvedSchedule(TITULO_HORARIO_EXTENDIDO, extendido);
+  if (finDeSemanaOn && finDeSemana) {
+    return buildResolvedSchedule(TITULO_HORARIO_EXTENDIDO_FIN_SEMANA, finDeSemana);
   }
 
   return { hasActiveSchedule: false };
@@ -167,9 +182,10 @@ function evaluateDual(horario: HorarioRow, clock: EcuadorClock): BusinessHoursSt
 export function evaluateBusinessHours(
   horario: HorarioRow,
   clock: EcuadorClock,
-  options: { weekdayOnly?: boolean } = {}
+  options: { weekdayOnly?: boolean; weekendOnly?: boolean } = {}
 ): BusinessHoursState {
   if (options.weekdayOnly && !clock.isWeekday) return 'after-hours';
+  if (options.weekendOnly && clock.isWeekday) return 'after-hours';
   if (horario.modo === 'continuo') return evaluateContinuo(horario, clock);
   return evaluateDual(horario, clock);
 }
@@ -182,7 +198,8 @@ export function getBusinessHoursStateFromResolved(
     return 'after-hours';
   }
   return evaluateBusinessHours(resolved.horario, clock, {
-    weekdayOnly: resolved.weekdayOnly ?? resolved.titulo === TITULO_HORARIO_NORMAL,
+    weekdayOnly: resolved.weekdayOnly === true,
+    weekendOnly: resolved.weekendOnly === true,
   });
 }
 
@@ -242,13 +259,18 @@ export function buildScheduleSummary(store: ScheduleStore): string[] {
   const lines: string[] = [];
   const normal = store.horarios[TITULO_HORARIO_NORMAL];
   const extendido = store.horarios[TITULO_HORARIO_EXTENDIDO];
+  const finDeSemana = store.horarios[TITULO_HORARIO_EXTENDIDO_FIN_SEMANA];
 
   if (normal?.habilitado === true) {
     lines.push(...formatHorarioBlocks(normal, 'Lun-Vie'));
   }
 
   if (extendido?.habilitado === true) {
-    lines.push(...formatHorarioBlocks(extendido, 'Sáb-Dom'));
+    lines.push(...formatHorarioBlocks(extendido, 'Lun-Vie'));
+  }
+
+  if (finDeSemana?.habilitado === true) {
+    lines.push(...formatHorarioBlocks(finDeSemana, 'Sáb-Dom'));
   }
 
   return lines;

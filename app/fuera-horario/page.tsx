@@ -57,7 +57,7 @@ export default function FueraHorarioPage() {
     <div className="flex min-h-dvh flex-col">
       <PageHeader />
 
-      <div className="bg-utpl-navy">
+      <div className="bg-utpl-blue">
         <section className="relative z-10 overflow-hidden pb-6 pt-16 text-center">
           <div className="mx-auto max-w-3xl px-4">
             <motion.h1
@@ -72,13 +72,13 @@ export default function FueraHorarioPage() {
           </div>
         </section>
 
-        <section className="relative z-10 bg-utpl-gold py-2.5 text-center">
+        <section className="relative z-10 bg-[#febe10] py-2.5 text-center">
           <p className="font-display text-[11px] font-extrabold uppercase tracking-[3px] text-utpl-navy">
             Centro de Atención UTPL
           </p>
         </section>
 
-        <section className="relative z-10 bg-utpl-navy-medium py-4">
+        <section className="relative z-10 bg-utpl-blue py-4">
           <div className="mx-auto max-w-3xl px-4">
             <motion.div
               className="flex items-center justify-center gap-2"
@@ -193,7 +193,7 @@ export default function FueraHorarioPage() {
         </motion.div>
       </main>
 
-      <footer className="relative z-10 shrink-0 bg-utpl-navy py-5 text-center">
+      <footer className="relative z-10 shrink-0 bg-utpl-blue py-5 text-center">
         <p className="text-xs tracking-wider text-white/50">
           &copy; {new Date().getFullYear()} Universidad Técnica Particular de Loja
         </p>

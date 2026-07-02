@@ -8,7 +8,7 @@ const config: Config = {
         'utpl-navy': '#0d2e5c',
         'utpl-navy-medium': '#12407a',
         'utpl-navy-light': '#1a5296',
-        'utpl-gold': '#f5c842',
+        'utpl-gold': '#febe10',
         'utpl-gold-light': '#fff8e1',
         'utpl-surface': '#f4f6fa',
         'utpl-text': '#1e293b',
