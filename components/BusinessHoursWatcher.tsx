@@ -8,10 +8,15 @@ import { setClientScheduleStore } from '@/lib/schedule-client-store';
 import type { BusinessHoursState, ScheduleStore } from '@/types/schedule';
 
 const WIZARD_ROUTES = ['/tipo', '/datos', '/servicio', '/detalle'];
+const LAST_WIZARD_ROUTE = WIZARD_ROUTES.at(-1)!;
 const POLL_INTERVAL_MS = 30_000;
 
 function isWizardPath(pathname: string): boolean {
   return WIZARD_ROUTES.some((route) => pathname.endsWith(route));
+}
+
+function isLastWizardStep(pathname: string): boolean {
+  return pathname.endsWith(LAST_WIZARD_ROUTE);
 }
 
 async function syncScheduleFromApi(): Promise<BusinessHoursState | null> {
@@ -64,7 +69,7 @@ export default function BusinessHoursWatcher() {
       const state = syncedState;
       const previous = previousStateReference.current;
 
-      if (state === 'closing-soon' && !modalShownForStateReference.current) {
+      if (state === 'closing-soon' && !modalShownForStateReference.current && isLastWizardStep(pathname)) {
         modalShownForStateReference.current = true;
         router.refresh();
         openContactTimeModal();
