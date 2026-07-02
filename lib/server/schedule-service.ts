@@ -96,7 +96,6 @@ export async function getScheduleConfigSnapshot(): Promise<{
     const store = createDefaultScheduleStore();
     const clock = getEcuadorClock();
     const resolved = resolveActiveSchedule(store, clock);
-    const resolved = resolveActiveSchedule(store);
     return { store, resolved, state: mock };
   }
 
