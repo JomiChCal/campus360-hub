@@ -9,7 +9,7 @@ import {
   Sun,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import MobileWarningModal from '@/components/MobileWarningModal';
 import Modal from '@/components/Modal';
@@ -22,7 +22,8 @@ import {
 } from '@/lib/business-hours';
 import { useScheduleHydration } from '@/hooks/use-schedule-hydration';
 import { getClientScheduleStore } from '@/lib/schedule-client-store';
-import { buildScheduleSummary, getEcuadorClock, resolveActiveSchedule } from '@/lib/schedule-core';
+import { buildScheduleSummary, getEcuadorClock, isWizardAllowedState, resolveActiveSchedule } from '@/lib/schedule-core';
+import type { BusinessHoursState } from '@/types/schedule';
 
 export default function FueraHorarioPage() {
   const router = useRouter();
@@ -46,6 +47,30 @@ export default function FueraHorarioPage() {
     const resolved = resolveActiveSchedule(store, clock);
     return resolved.horario?.horaAperturaM ?? '08:00';
   }, [scheduleReady, state]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function redirectIfOpen() {
+      try {
+        const response = await fetch('/api/schedule-config', { cache: 'no-store' });
+        if (!response.ok || cancelled) return;
+
+        const data = (await response.json()) as { state?: BusinessHoursState };
+        if (data.state && isWizardAllowedState(data.state)) {
+          router.replace('/tipo');
+        }
+      } catch {
+        // Mantener fuera-horario si la API no responde
+      }
+    }
+
+    void redirectIfOpen();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   const handleConfirm = () => {
     if (!selectedContactTime) return;
